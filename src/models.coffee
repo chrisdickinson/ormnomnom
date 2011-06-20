@@ -2,6 +2,7 @@ fields = require './fields'
 {ExtendableError} = require './utils'
 {Manager} = require './managers'
 {Schema, Meta} = require './schema'
+{Connection} = require './connection'
 
 DoesNotExist = ()->
     ExtendableError.call this
@@ -41,8 +42,6 @@ BaseModel = (name, model_fn)->
 
     model_fn.meta = (meta)->
         BaseModel.set_meta model_fn, meta
-
-    setTimeout(BaseModel.lock.bind(BaseModel, model_fn), 0)
 
     @__mro__ = if @__mro__ then [model_fn].concat @__mro__ else [model_fn]
     @constructor = model_fn
@@ -94,43 +93,28 @@ BaseModel::delete = ()->
     else
         throw new Error "Can't delete object!"
 
-create = (name)->
-    managers = {}
-    model_fn = (kwargs)->
-        @_fk_cache = {}
-
-        @assign kwargs
-        for key, value of managers
-            @[key] = value
-            @[key].instance = @
-
-        for key, value of model_fn._schema.aliases
-            Object.defineProperty @, key, {
-                get:=>@[value.name],
-                set:(val)=>@[value.name]=val
-            }
-        @
-
-    model_fn.register_manager = (at, manager)->
-        managers[at] = manager
-
-    model_fn:: = new BaseModel name, model_fn
-
-    model_fn
+exports.namespace = (name, do_fn)->
+    {Scope} = require './scope'
+    scope = new Scope name
+    scope.execute do_fn
+    scope
 
 exports.BaseModel = BaseModel
+exports.Connection = Connection
+exports.configure = (name, connection_data)->
+    Connection.register name, connection_data
 
-exports.create = create
-
-{Connection} = require './connection'
-
-exports.configure = (name, connection_data)->Connection.register name, connection_data
-
-exports.set_prefix = (prefix) -> Meta.set_prefix prefix
+exports.set_prefix = (prefix) ->
+    Meta.set_prefix prefix
 
 for name, field of fields
     do (name, field) ->
         exports[name] = (a,b)->
-            if b is undefined and a is undefined
+            if not a?
                 a = {}
-            new field a,b
+            if not b?
+                b = {}
+            ret = new field a,b
+            ret.type = name
+            ret.original_arguments = [].slice.call arguments
+            ret

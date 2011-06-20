@@ -46,12 +46,13 @@ Manager::get = (kwargs)->
         else
             ee.emit 'data', data[0]
 
-    base.on 'error', ->ee.emit 'error'
+    base.on 'error', (err)->ee.emit 'error', err
     ee
 
 Manager::get_or_create =(kwargs)->
     ee = new EventEmitter
     base = @get kwargs
+
     base.on 'data', (data)->
         ee.emit 'data', data
 

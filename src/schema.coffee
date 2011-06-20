@@ -75,6 +75,9 @@ Meta = (name, model)->
 Meta.set_prefix = (prefix) -> @prefix = prefix
 Meta.get_db_table_name = (name)-> if @prefix then @prefix+'_'+lowercase(name) else lowercase name
 
+Meta::get_table_constraints = ->
+    []
+
 Meta::set = (key, val)->
     @[key] = val
 

@@ -27,9 +27,18 @@ Field::create_instance = (name, model)->
 CharField = (kwargs)->
     Field.call @, kwargs
     {@max_length,@match_regex}=kwargs
+    if @max_length is null then @max_length = 255
     @
 
 CharField:: = new Field {}
+CharField::db_type = 'varchar'
+
+TextField = (kwargs)->
+    Field.call @, kwargs
+    @
+
+TextField:: = new CharField {}
+TextField::db_type = 'text'
 
 IntegerField = (kwargs)->
     Field.call @, kwargs
@@ -37,6 +46,7 @@ IntegerField = (kwargs)->
     @
 
 IntegerField:: = new Field {}
+IntegerField::db_type = 'integer'
 
 PositiveIntegerField = (kwargs)->
     kwargs.min = 0
@@ -51,6 +61,7 @@ AutoField = (kwargs)->
     @
 
 AutoField:: = new PositiveIntegerField {}
+AutoField::db_type = 'id'
 
 ForeignKey = (related, kwargs)->
     PositiveIntegerField.call @, kwargs
@@ -59,7 +70,9 @@ ForeignKey = (related, kwargs)->
     @related = related
     @
 
+
 ForeignKey:: = new PositiveIntegerField {}
+ForeignKey::db_type = 'fk'
 ForeignKey::db_field =-> "#{@name}_id"
 ForeignKey::needs_connection =-> yes
 ForeignKey::get_related_name =-> @related_name or "#{@model._meta.name.toLowerCase()}_set"
@@ -83,12 +96,12 @@ ForeignKey::connect =->
     local_mgr = new Manager @related
     [model, field_name, db_field, to_field] = [@model, @name, @db_field, @to_field]
 
-    @model::[@name] = (ready)->
+    @model::[@name] = ()->
         if @_fk_cache[field_name]
             if @_fk_cache[field_name].instance
                 instance = @_fk_cache[field_name].instance
                 ee = new EventEmitter
-                setTimeout -> ee.emit 'data', instance
+                setTimeout (-> ee.emit 'data', instance), 0
                 return ee
             else if @_fk_cache[field_name].id
                 filter = {}
@@ -107,6 +120,7 @@ ForeignKey::connect =->
         base = base or {}
         base[name] = @instance
 
+    @model.scope.depend_on @related.scope
     @related._schema.register_related_field @get_related_name(), @
     @related.register_manager @get_related_name(), mgr
 
@@ -136,53 +150,52 @@ ManyToMany::connect =->
             file = require file
             @related = file[target]
     else
-        model = models.create "#{@model._meta.db_table}_#{@name}"
+        model = @model.scope.create "#{@model.name}_#{@name}"
         model.schema
             from:models.ForeignKey model, {}
             to:models.ForeignKey @related, {}
         @through = model
 
-    eventually = =>
-            from_field = to_field = null
-            for field in @through._schema.fields
-                if field.related is @model
-                    from_field = field
-                else if field.related is @related
-                    to_field = field
+        from_field = to_field = null
+        for field in @through._schema.fields
+            if field.related is @model
+                from_field = field
+            else if field.related is @related
+                to_field = field
 
-            if not (from_field and to_field)
-                throw new Error "Could not create M2M for #{@model.name}"
+        if not (from_field and to_field)
+            throw new Error "Could not create M2M for #{@model.name}"
 
-            @through_local_field = from_field
-            @through_remote_field = remote_field
+        @through_local_field = from_field
+        @through_remote_field = remote_field
 
-            mgr_local = new Manager @related
-            mgr_foreign = new Manager @model
+        mgr_local = new Manager @related
+        mgr_foreign = new Manager @model
 
 
-            mgr_local.start_query = ->
-                base = Manager::start_query.call mgr_local
-                filter = {}
-                filter["#{to_field.get_related_name()}__#{from_field.name}__pk__exact"] = @instance.pk
-                @filter filter
+        mgr_local.start_query = ->
+            base = Manager::start_query.call mgr_local
+            filter = {}
+            filter["#{to_field.get_related_name()}__#{from_field.name}__pk__exact"] = @instance.pk
+            @filter filter
 
-            mgr_foreign.start_query = ->
-                base = Manager::start_query.call mgr_foreign
-                filter = {}
-                filter["#{from_field.get_related_name()}__#{from_field.name}__pk__exact"] = @instance.pk
-                @filter filter
+        mgr_foreign.start_query = ->
+            base = Manager::start_query.call mgr_foreign
+            filter = {}
+            filter["#{from_field.get_related_name()}__#{from_field.name}__pk__exact"] = @instance.pk
+            @filter filter
 
-            @model.register_manager @name, mgr_local
-            @related.register_manager related_name, mgr_foreign
+        @model.register_manager @name, mgr_local
+        @related.register_manager related_name, mgr_foreign
 
-            @model._schema.register_related_field @name, @
-            @related._schema.register_related_field @get_related_name(), @
+        @model._schema.register_related_field @name, @
+        @related._schema.register_related_field @get_related_name(), @
 
-    setTimeout(eventually, 0)
-
-exports.Field = Field
-exports.ForeignKey = ForeignKey
-exports.IntegerField = IntegerField
-exports.PositiveIntegerField = PositiveIntegerField
-exports.AutoField = AutoField
-exports.CharField = CharField
+module.exports = exports =
+    Field:Field
+    ForeignKey:ForeignKey
+    IntegerField:IntegerField
+    PositiveIntegerField:PositiveIntegerField
+    AutoField:AutoField
+    CharField:CharField
+    TextField:TextField

@@ -70,6 +70,8 @@ QuerySet::ready =-> @_ready_count is 0
 
 QuerySet::execute =->
     qcons = new QCons @
+    if not @connection
+        @connection = Connection.get_connection @using_connection
     ready = =>
         qcons.set_mode SELECT
         if @payload
@@ -89,8 +91,6 @@ QuerySet::execute =->
                 qcons.add_ordering field_name
 
         sql = qcons.compile()
-        if not @connection
-            @connection = Connection.get_connection @using_connection
 
         ee = @connection.execute sql, qcons.prepared_values(), qcons.mode, @model
 

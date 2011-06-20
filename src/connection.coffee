@@ -35,12 +35,21 @@ Connection::client =(ready)->
     else
         ready @_client
 
+Connection::quote = (what)->
+    "`#{what}`"
+
 Connection::execute = (sql, values, mode, model)->
     ee = new EventEmitter
     @client =>
         @_client.execute sql, values, mode, model, (err, data)->
             if err then ee.emit('error', err) else ee.emit('data', data)
     ee
+
+Connection::close = (ready)->
+    throw new Error 'Not implemented in base connection'
+
+Connection::constraint = (constraint)->
+    throw new Error 'Not implemented in base connection'
 
 Connection::negotiate_type = (field_type)->
     throw new Error 'Not implemented in base connection'
