@@ -1,4 +1,5 @@
 {AND, OR, NOT, SELECT, INSERT, UPDATE, DELETE} = require './constants'
+{SchemaError, ValidationError} = require './exceptions'
 
 QCons = (queryset)->
     @queryset = queryset
@@ -40,9 +41,9 @@ QCons::compile =->
         """
             UPDATE #{@queryset.model._meta.db_table}
             SET
-            #{(keys[i]+' = $'+(i+1) for i in [0...keys.length]).join ' '}
+            #{(@keys[i].db_field()+' = $'+(i+1) for i in [0...@keys.length]).join ', '}
             #{if @where_clause then 'WHERE '+@where_clause else ''}
-            #{if @join_sql.length then ' AND (' + (@join_sql.join ' AND ')+')'}
+            #{if @join_sql.length then ' AND (' + (@join_sql.join ' AND ')+')' else ''}
             #{if @ordering.length then 'ORDER BY '+@ordering.join ', ' else ''}
         """.replace /\n/g, ' '
     else if @mode is DELETE
@@ -53,7 +54,7 @@ QCons::compile =->
         """.replace /\n/g, ' '
 
 QCons::prepared_values = ->
-    (@keys[i].prepdb @values[i] for i in [0...@keys.length]).concat(@values.slice(@keys.length))
+    (@keys[i].get_prepdb_value @values[i] for i in [0...@keys.length]).concat(@values.slice(@keys.length))
 
 QCons::compile_where_clause = (fields, cmp, value)->
     field = @get_field_and_register fields
@@ -68,6 +69,10 @@ QCons::add_payload = (payload)->
     Object.keys(payload).forEach (field_name)=>
         field = @get_field_and_register field_name.split '__'
         field = field.field
+
+        if not field.validate_value payload[field_name]
+            throw new ValidationError "#{payload[field_name]} is not a valid value for #{field.model._meta.name}.#{field.name}"
+
         @keys.push field
         @values.push payload[field_name]
 
@@ -87,7 +92,7 @@ QCons::add_payload = (payload)->
                             @values.push field.default
                             @keys.push field
                     else
-                        throw new Error "#{field.name} is required"
+                        throw new ValidationError "#{field.name} is required"
 
 QCons::add_ordering = (field_name)->
     dir = 'ASC'
@@ -121,6 +126,8 @@ QCons::register_join = (by_field)->
         @join_sql = @join_sql.concat joins
 
 QCons::get_table = (model)->
+    if @mode is UPDATE or @mode is DELETE
+      return @queryset.connection.quote model._meta.db_table
     return @queryset.connection.quote @tables[model._meta.db_table]
 
 QCons::get_db_repr = (field)->
@@ -139,6 +146,8 @@ QCons::get_field_and_register = (fields)->
         else
             last_field = model._schema.get_field_by_name field
 
+        if not last_field
+            throw new SchemaError "#{fields.join '__'} is not a valid field!"
     return {
         db_field:"#{@get_table model}.#{@queryset.connection.quote last_field.db_field()}",
         field:last_field
@@ -165,24 +174,51 @@ QCons::coerce = (rows)->
                 new model row
 
         rows = rows.map process
+        rows.sql = => @compile()
+        rows.values = => @values
 
         if @mode is INSERT
             return rows[0]
     rows
 
-Comparison = (string)->
+Comparison = (string, special_validation, decorate_value)->
     @string = string
+    @special_validation = special_validation or null
+    @decorate_value = decorate_value or null
+    @
 
 Comparison::compile = (qcons_field, value, register_value)->
+    validation = qcons_field.field.validate_comparison.bind qcons_field.field
+    if @special_validation
+        validation = @special_validation
+
+    decorate = (val)->val
+    if @decorate_value
+        decorate = @decorate_value
+
     if @string.indexOf('@') isnt -1
         values = value.map (val)->
-            register_value qcons_field.field.prepdb val
+            if not validation val
+                throw new ValidationError "#{val} is not a valid value for #{qcons_field.field.model._meta.name}.#{qcons_field.field.name}"
+            register_value decorate qcons_field.field.get_prepdb_value val
         str = @string.replace '@', '$'+values.join(',$')
     else if @string.indexOf('?') isnt -1
         value = !!value
         str = @string.replace '?', ['NOT', ''][~~value]
+    else if @string.indexOf('BETWEEN') isnt -1
+        [lower, upper] = value
+        lower = decorate qcons_field.field.get_prepdb_value lower
+        upper = decorate qcons_field.field.get_prepdb_value upper
+
+        lower = register_value lower
+        upper = register_value upper
+
+        str = @string.replace '$3', '$'+upper
+        str = str.replace '$2', '$'+lower
     else
-        value = register_value qcons_field.field.prepdb value
+        if not validation value
+            throw new ValidationError "#{value} is not a valid value for #{qcons_field.field.model._meta.name}.#{qcons_field.field.name}"
+        value = register_value decorate qcons_field.field.get_prepdb_value value
         str = @string.replace '$2', '$'+value
 
     # in case we need to decorate the type of the comparison, like __year or __month or whatever.

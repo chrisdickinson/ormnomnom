@@ -10,14 +10,17 @@ Field::get_prepdb_value = (value)->
 Field::db_field =->
     @name
 
+Field::validate_comparison = (value)->
+    yes
+
+Field::validate_value = (value)->
+    yes
+
 Field::apply_value = (instance, value)->
     instance[@name] = value
 
 Field::needs_connection =-> no
 Field::connect =-> no
-
-Field::prepdb = (val)->
-    val
 
 Field::create_instance = (name, model)->
     clone = Object.create @
@@ -26,12 +29,25 @@ Field::create_instance = (name, model)->
 
 CharField = (kwargs)->
     Field.call @, kwargs
-    {@max_length,@match_regex}=kwargs
+    {@max_length,@regex}=kwargs
     if @max_length is null then @max_length = 255
     @
 
 CharField:: = new Field {}
 CharField::db_type = 'varchar'
+
+CharField::validate_comparison = (value)->
+    typeof value is 'string' or (not val? and @nullable)
+
+CharField::validate_value = (value)->
+    if not value?
+        @nullable
+    else
+        valid = value.length < @max_length
+        if @regex
+            @regex.lastIndex = 0
+            valid = valid and @regex.test value
+        valid
 
 TextField = (kwargs)->
     Field.call @, kwargs
@@ -48,8 +64,20 @@ IntegerField = (kwargs)->
 IntegerField:: = new Field {}
 IntegerField::db_type = 'integer'
 
+IntegerField::validate_value = (val)->
+    if not val?
+        @nullable
+    else
+        valid = typeof val is 'number'
+        valid = valid and (if @min then val>@min else valid)
+        valid = valid and (if @max then val<@max else valid)
+
+
+IntegerField::validate_comparison = (val)->
+    typeof val is 'number' or (not val? and @nullable)
+
 PositiveIntegerField = (kwargs)->
-    kwargs.min = 0
+    kwargs.min = -1
     IntegerField.call @, kwargs
     @
 
@@ -70,6 +98,15 @@ ForeignKey = (related, kwargs)->
     @related = related
     @
 
+ForeignKey::validate_comparison = (val)->
+    (typeof val is @related) or (not val? and @nullable)
+
+ForeignKey::validate_value = (val)->
+    if not val?
+        @nullable
+    else
+        valid = val instanceof @related
+        valid = valid and val[@to_field]?
 
 ForeignKey:: = new PositiveIntegerField {}
 ForeignKey::db_type = 'fk'
@@ -84,7 +121,7 @@ ForeignKey::apply_value = (obj, val)->
 ForeignKey::join_struct =->
     [{lhs:@model, lhs_field:@, rhs:@related, rhs_field:@related._schema.get_field_by_name(@to_field)}]
 
-ForeignKey::prepdb = (val)->
+ForeignKey::get_prepdb_value = (val)->
     val[@to_field]
 
 ForeignKey::connect =->

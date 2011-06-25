@@ -1,20 +1,8 @@
 fields = require './fields'
-{ExtendableError} = require './utils'
+{DoesNotExist, MultipleObjectsReturned, ValidationError} = require './exceptions'
 {Manager} = require './managers'
 {Schema, Meta} = require './schema'
 {Connection} = require './connection'
-
-DoesNotExist = ()->
-    ExtendableError.call this
-    this
-
-DoesNotExist:: = new ExtendableError
-
-MultipleObjectsReturned = ()->
-    ExtendableError.call this
-    this
-
-MultipleObjectsReturned:: = new ExtendableError
 
 BaseModel = (name, model_fn)->
     @name = name
@@ -50,8 +38,8 @@ BaseModel = (name, model_fn)->
 BaseModel.lock = (model_fn)->
     model_fn.schema = -> throw new Error("#{model_fn::name}'s schema is locked!")
     model_fn.meta = -> throw new Error("#{model_fn::name}'s meta is locked!")
-    BaseModel.compile model_fn
-    BaseModel.create_manager model_fn
+    @compile model_fn
+    @create_manager model_fn
 
 BaseModel.set_meta = (model_fn, meta)->
     for key, value of meta
@@ -70,22 +58,29 @@ BaseModel.compile = (model_fn)->
 
 BaseModel.create_manager = (model_fn)->
     model_fn._default_manager = new Manager model_fn
-    model_fn.objects = if model_fn.objects then model_fn.objects else model_fn._default_manager
+    model_fn.objects = if model_fn.objects then new model_fn.objects(model_fn) else model_fn._default_manager
 
 BaseModel::assign = (kwargs)->
     schema = @constructor._schema
     for key, val of kwargs
         field = (schema.get_field_by_name key) or (schema.get_field_by_db_name key)
         if not field
-            throw new Error "#{key} is not a valid field for #{@constructor._meta.name}"
+            throw new ValidationError "#{key} is not a valid field for #{@constructor._meta.name}"
         else
             field.apply_value @, val
 
+BaseModel::value_dict = ->
+    output = {}
+    for field_name in @constructor._schema.get_field_names()
+        if @[field_name] isnt undefined
+            output[field_name] = @[field_name]
+    output
+
 BaseModel::save = ()->
-    if @_from_db or @pk
+    if @pk
         @constructor.objects.filter({pk:@pk}).update @value_dict()
     else
-        @constructor.objects.create @value_dict
+        @constructor.objects.create @value_dict()
 
 BaseModel::delete = ()->
     if @pk

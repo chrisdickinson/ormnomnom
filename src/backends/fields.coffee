@@ -67,7 +67,7 @@ BASE_FIELDS =
     text:
         o null, "TEXT"
     id:
-        o (->"PRIMARY KEY AUTOINCREMENT"), "INTEGER"
+        o (->"AUTOINCREMENT"), "INTEGER"
     fk:
         o (->
             if not @defer_fk_constraint()

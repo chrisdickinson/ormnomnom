@@ -9,8 +9,8 @@ clone = (obj, props)->
         out[key] = val
     out
 
-o = (str)->
-    new Comparison str
+o = (str, special_validation, decorate_value)->
+    new Comparison str, special_validation, decorate_value
 
 comparisons = {
     exact:o '$1 = $2'
@@ -20,7 +20,10 @@ comparisons = {
     gte:o '$1 >= $2'
     in:o '$1 in (@)'
     isnull:o '$1 IS ? NULL'
-
+    contains:o '$1 LIKE $2', null, (val)->"%#{val.replace /%/g, '\\%'}%"
+    startswith:o '$1 LIKE $2', null, (val)-> "#{val.replace /%/g, '\\%'}%"
+    endswith:o '$1 LIKE $2', null, (val)-> "%#{val.replace /%/g, '\\%'}"
+    range:o '$1 BETWEEN $2 AND $3'
 }
 
 Query = (conn, children)->
@@ -103,7 +106,10 @@ QuerySet::execute =->
             if @_errored
                 @emit 'error', @_errored
             else
-                ready()
+                try
+                    ready()
+                catch err
+                    @emit 'error', err
     1)
     @
 
@@ -123,7 +129,8 @@ QuerySet::_select_query = (kwargs)->
                 cmp = comparisons['exact']
 
             leaf = new QueryLeaf fields, val, cmp
-            if val.on
+
+            if val and val.on
                 ++@_ready_count
                 val.on 'data', (data)=>
                     --@_ready_count
@@ -140,7 +147,7 @@ QuerySet::_update_payload = (kwargs)->
     if @model._schema.validate kwargs, yes
         @payload = if @payload then clone(@payload, kwargs) else kwargs
         for key, val of kwargs
-            if val.on
+            if val and val.on
                 ++@_ready_count
                 do(key, val)=>
                     val.on 'data', (data)=>
@@ -156,7 +163,7 @@ QuerySet::exclude = (kwargs)->
     if @query
         @query = @query.op_and @query.op_not()
     else
-        @query = @query.op_not()
+        @query = q.op_not()
     @
 
 QuerySet::order_by = (ordering...)->
@@ -193,6 +200,34 @@ QuerySet::update = (kwargs)->
 QuerySet::delete = ()->
     @_delete = yes
     @
+
+QuerySet::values_list = (values...)->
+    for val in values
+        if not @model._schema.get_field_by_name val
+            @_errored = new SchemaError "#{val} is not a valid field on #{@model._meta.name}"
+            return @
+
+    ee = new EventEmitter
+    @ (err, data) ->
+        if err
+            ee.emit 'error', err
+        else
+            ee.emit 'data', ((instance[key] for key in values) for instance in data)
+    ee
+
+QuerySet::flat_values_list = (values...)->
+    ee = new EventEmitter
+    values = @values_list(values...)
+    values (err, data)->
+        if err
+            ee.emit 'error', err
+        else
+            out = []
+            for instance in data
+                for value in instance
+                    out.push value
+            ee.emit 'data', out
+    ee
 
 QuerySet::create = (kwargs)->
     @_update_payload kwargs

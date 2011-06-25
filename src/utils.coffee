@@ -5,4 +5,7 @@ ExtendableError = (args...)->
 
 ExtendableError:: = new Error
 
+ExtendableError::toString = ->
+    "#{@constructor.name}: #{@message}"
+
 exports.ExtendableError = ExtendableError

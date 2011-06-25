@@ -1,13 +1,6 @@
-{ExtendableError} = require './utils'
 {Field} = require './fields'
 
 lowercase = String::toLowerCase.call.bind String::toLowerCase
-
-SchemaError = (args...)->
-    ExtendableError.apply @, args
-    @
-
-SchemaError:: = new ExtendableError
 
 base_keys = (kwargs)->
     Object.keys(kwargs).map (key)->
@@ -20,6 +13,9 @@ Schema = (model)->
     @model = model
     @has_primary_key = no
     @
+
+Schema::get_field_names = ->
+    (field.name for field in @fields when field.db_field())
 
 Schema::get_field_by_db_name = (key)->
     (field for field in @fields when field.db_field() is key)[0]
@@ -63,6 +59,7 @@ Schema::validate =(kwargs, strict=no)->
     fields.forEach (field_name)=>
         field_instance = @get_field_by_name field_name
         if not field_instance
+            return false
             throw new SchemaError "#{field_name} is not a field on #{@model._meta.name}"
     yes
 

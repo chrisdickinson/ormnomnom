@@ -3,3 +3,4 @@ module.exports = exports =
   connection: require './connection'
   backends: require './backends'
   constants: require './constants'
+  exceptions: require './exceptions'
