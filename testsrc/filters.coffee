@@ -347,4 +347,25 @@ module.exports = exports =
                                 assert.equal rows.length, 1
                                 assert.equal rows[0].pk, many.pk
 
+        (assert)->
+            'Test that filtering on reverse M2M relations works as expected.'
+            creation = Related.objects.create
+                model:Model.objects.create {anything:'lolwut', validated:'whatever'}
+            creation assert.async (err, related)->
+                assert.fail err
+                assert.ok related
+                related.model() assert.async (err, model)->
+                    assert.fail err
+                    assert.ok model
+                    creation = Many.objects.create {}
+                    creation assert.async (err, many)->
+                        assert.fail err
+                        assert.ok many
+                        addition = many.related.add related
+                        addition assert.async (err, data)->
+                            Related.objects.filter({manytomany_set__pk:many.pk}) assert.async (err, rows)->
+                                assert.fail err
+                                assert.ok rows
+                                assert.equal rows.length, 1
+                                assert.equal rows[0].pk, related.pk
     )

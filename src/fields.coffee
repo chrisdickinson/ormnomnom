@@ -102,10 +102,11 @@ ReverseRelation:: = new Field {}
 ReverseRelation::db_field =->null
 ReverseRelation::join_struct =->
     remote_join = @remote_field.join_struct()
+    join_type = @remote_field.join_type()
     reversed_struct = (struct)->
         {lhs, lhs_field, rhs, rhs_field} = struct
-        {lhs:rhs, lhs_field:rhs_field, rhs:lhs, rhs_field:lhs_field}
-    (reversed_struct(struct) for struct in remote_join)
+        {lhs:rhs, lhs_field:rhs_field, rhs:lhs, rhs_field:lhs_field, join_type:join_type}
+    (reversed_struct(struct) for struct in remote_join).reverse()
 
 ForeignKey = (related, kwargs)->
     PositiveIntegerField.call @, kwargs
@@ -134,8 +135,10 @@ ForeignKey::apply_value = (obj, val)->
     obj._fk_cache[@name] = obj._fk_cache[@name] or {}
     obj._fk_cache[@name].id = val
 
+ForeignKey::join_type =-> "LEFT"
+
 ForeignKey::join_struct =->
-    [{lhs:@model, lhs_field:@, rhs:@related, rhs_field:@related._schema.get_field_by_name(@to_field)}]
+    [{lhs:@model, lhs_field:@, rhs:@related, rhs_field:@related._schema.get_field_by_name(@to_field), join_type:@join_type()}]
 
 ForeignKey::get_prepdb_value = (val)->
     val[@to_field]
@@ -184,12 +187,13 @@ ManyToMany = (related, kwargs)->
     @
 
 ManyToMany:: = new PositiveIntegerField {}
+ManyToMany::join_type =-> "INNER"
 ManyToMany::db_field =-> null
 ManyToMany::needs_connection =-> yes
 ManyToMany::get_related_name =-> @related_name or "#{@model._meta.name.toLowerCase()}_set"
 ManyToMany::join_struct =->
-    [{lhs:@model, lhs_field:@model._schema.get_field_by_name('pk'), rhs:@through, rhs_field:@through_local_field},
-     {lhs:@through, lhs_field:@through_remote_field, rhs:@related, rhs_field:@related._schema.get_field_by_name('pk')}]
+    [{lhs:@model, lhs_field:@model._schema.get_field_by_name('pk'), rhs:@through, rhs_field:@through_local_field, join_type:@join_type()},
+     {lhs:@through, lhs_field:@through_remote_field, rhs:@related, rhs_field:@related._schema.get_field_by_name('pk'), join_type:@join_type()}]
 
 ManyToMany::connect =->
     if typeof @related is 'string'
@@ -255,7 +259,7 @@ ManyToMany::connect =->
         mgr_foreign.start_query = ->
             base = Manager::start_query.call mgr_foreign
             filter = {}
-            filter["#{from_field.get_related_name()}__#{from_field.name}__pk__exact"] = @instance.pk
+            filter["#{from_field.get_related_name()}__#{to_field.name}__pk__exact"] = @instance.pk
             @filter filter
 
         mgr_foreign.add = (item) ->
@@ -275,7 +279,7 @@ ManyToMany::connect =->
         @related.register_manager @get_related_name(), mgr_foreign
 
         @model._schema.register_related_field @name, @
-        @related._schema.register_related_field @get_related_name(), @
+        @related._schema.register_related_field new ReverseRelation @get_related_name(), @to_field, @
 
 module.exports = exports =
     Field:Field

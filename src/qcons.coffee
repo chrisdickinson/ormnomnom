@@ -131,7 +131,7 @@ QCons::register_join = (by_field, seen_models)->
             if @mode in [INSERT, DELETE, UPDATE]
                 "#{tbl join.lhs}.#{@queryset.connection.quote join.lhs_field.db_field()} = #{tbl join.rhs}.#{@queryset.connection.quote join.rhs_field.db_field()}"
             else if @mode is SELECT
-                "LEFT JOIN #{tbl join.rhs} #{@queryset.connection.quote rhs_alias} ON (#{@get_db_repr join.lhs_field} = #{@get_db_repr join.rhs_field})"
+                "#{join.join_type} JOIN #{tbl join.rhs} #{@queryset.connection.quote rhs_alias} ON (#{@get_db_repr join.lhs_field} = #{@get_db_repr join.rhs_field})"
         @join_sql = @join_sql.concat joins
 
 QCons::get_table = (model)->
