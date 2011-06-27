@@ -14,8 +14,17 @@ Scope::depend_on = (scope)->
 Scope::execute = (scope_fn)->
     set_prefix @name
     scope_fn @
-    for name, model of @models
-        BaseModel.lock model
+
+    seen_models = []
+
+    repeat = =>
+      for name, model of @models
+          if not (model in seen_models)
+              BaseModel.lock model
+              seen_models.push model
+      if seen_models.length < Object.keys @models
+          repeat()
+    repeat()
 
 Scope::create = (model_name)->
     managers = {}
@@ -39,6 +48,7 @@ Scope::create = (model_name)->
         managers[at] = manager
 
     model_fn:: = new BaseModel model_name, model_fn
+    BaseModel.create_manager model_fn
 
     @models[model_name] = model_fn
     model_fn.scope = @
@@ -58,8 +68,9 @@ Scope::db_creation = (connection, execute=yes, ready)->
     for name, model of @models
         fields = []
         for field in model._schema.fields
-            db_field = connection.negotiate_type field
-            db_field.contribute_to_table fields, pending_constraints, visited
+            if field.db_field()
+                db_field = connection.negotiate_type field
+                db_field.contribute_to_table fields, pending_constraints, visited
         table_constraints = model._meta.get_table_constraints() or []
         visited.push model
         sql.push """
@@ -70,12 +81,20 @@ Scope::db_creation = (connection, execute=yes, ready)->
         """
 
     sql.push (connection.constraint constraint for constraint in pending_constraints).join ';'
-    sql = sql.join '\n'
 
     if execute
-        ee = connection.execute sql, [], null, null
-        ee.on 'error', ready
-        ee.on 'data', ready.bind({}, null)
+        readyCount = sql.length
+        sql.forEach (stmt)->
+          ee = connection.execute stmt, [], null, null
+          ee.on 'error', -> 
+              --readyCount
+              if readyCount == 0
+                ready null, null
+
+          ee.on 'data', ->
+              --readyCount
+              if readyCount == 0
+                ready null, null
     else
         console.log sql
 

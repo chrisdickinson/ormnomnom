@@ -91,6 +91,22 @@ AutoField = (kwargs)->
 AutoField:: = new PositiveIntegerField {}
 AutoField::db_type = 'id'
 
+ReverseRelation = (name, local_field, remote_field)->
+    @name = name
+    [@local_field, @remote_field] = [local_field, remote_field]
+    @related = remote_field.model
+    @
+
+ReverseRelation:: = new Field {}
+
+ReverseRelation::db_field =->null
+ReverseRelation::join_struct =->
+    remote_join = @remote_field.join_struct()
+    reversed_struct = (struct)->
+        {lhs, lhs_field, rhs, rhs_field} = struct
+        {lhs:rhs, lhs_field:rhs_field, rhs:lhs, rhs_field:lhs_field}
+    (reversed_struct(struct) for struct in remote_join)
+
 ForeignKey = (related, kwargs)->
     PositiveIntegerField.call @, kwargs
     {@related_name, @to_field} = kwargs
@@ -98,8 +114,9 @@ ForeignKey = (related, kwargs)->
     @related = related
     @
 
+ForeignKey:: = new PositiveIntegerField {}
 ForeignKey::validate_comparison = (val)->
-    (typeof val is @related) or (not val? and @nullable)
+    (val instanceof @related) or (not val? and @nullable)
 
 ForeignKey::validate_value = (val)->
     if not val?
@@ -108,7 +125,6 @@ ForeignKey::validate_value = (val)->
         valid = val instanceof @related
         valid = valid and val[@to_field]?
 
-ForeignKey:: = new PositiveIntegerField {}
 ForeignKey::db_type = 'fk'
 ForeignKey::db_field =-> "#{@name}_id"
 ForeignKey::needs_connection =-> yes
@@ -158,7 +174,7 @@ ForeignKey::connect =->
         base[name] = @instance
 
     @model.scope.depend_on @related.scope
-    @related._schema.register_related_field @get_related_name(), @
+    @related._schema.register_related_field new ReverseRelation @get_related_name(), @to_field, @
     @related.register_manager @get_related_name(), mgr
 
 ManyToMany = (related, kwargs)->
@@ -187,12 +203,18 @@ ManyToMany::connect =->
             file = require file
             @related = file[target]
     else
-        model = @model.scope.create "#{@model.name}_#{@name}"
-        model.schema
-            from:models.ForeignKey model, {}
+        models = require './models'
+        model = @model.scope.create "#{@model._meta.name}_#{@name}"
+        model.schema {
+            id:models.AutoField {}
+            from:models.ForeignKey @model, {}
             to:models.ForeignKey @related, {}
+        }
+        model._schema.alias 'pk', model._schema.get_field_by_name 'id'
+
         @through = model
 
+    process.nextTick =>
         from_field = to_field = null
         for field in @through._schema.fields
             if field.related is @model
@@ -201,10 +223,10 @@ ManyToMany::connect =->
                 to_field = field
 
         if not (from_field and to_field)
-            throw new Error "Could not create M2M for #{@model.name}"
+            throw new Error "Could not create M2M for #{@model._meta.name}.#{@name}"
 
         @through_local_field = from_field
-        @through_remote_field = remote_field
+        @through_remote_field = to_field
 
         mgr_local = new Manager @related
         mgr_foreign = new Manager @model
@@ -216,14 +238,41 @@ ManyToMany::connect =->
             filter["#{to_field.get_related_name()}__#{from_field.name}__pk__exact"] = @instance.pk
             @filter filter
 
+        through = @through
+
+        mgr_local.add = (item) ->
+            kwargs = {}
+            kwargs[from_field.name] = @instance
+            kwargs[to_field.name] = item
+            through.objects.get_or_create(kwargs)
+
+        mgr_local.remove = (item) ->
+            kwargs = {}
+            kwargs[from_field.name] = @instance
+            kwargs[to_field.name] = item
+            through.objects.filter(kwargs).delete()
+
         mgr_foreign.start_query = ->
             base = Manager::start_query.call mgr_foreign
             filter = {}
             filter["#{from_field.get_related_name()}__#{from_field.name}__pk__exact"] = @instance.pk
             @filter filter
 
+        mgr_foreign.add = (item) ->
+            kwargs = {}
+            kwargs[to_field.name] = @instance
+            kwargs[from_field.name] = item
+            through.objects.get_or_create(kwargs)
+
+        mgr_foreign.remove = (item) ->
+            kwargs = {}
+            kwargs[to_field.name] = @instance
+            kwargs[from_field.name] = item
+            through.objects.filter(kwargs).delete()
+
+
         @model.register_manager @name, mgr_local
-        @related.register_manager related_name, mgr_foreign
+        @related.register_manager @get_related_name(), mgr_foreign
 
         @model._schema.register_related_field @name, @
         @related._schema.register_related_field @get_related_name(), @
@@ -236,3 +285,4 @@ module.exports = exports =
     AutoField:AutoField
     CharField:CharField
     TextField:TextField
+    ManyToMany:ManyToMany

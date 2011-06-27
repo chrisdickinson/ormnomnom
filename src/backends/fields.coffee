@@ -40,6 +40,8 @@ DBField::framing = ->
     """
 
 DBField::get_real_field = (field_name)->
+    {BaseModel} = require '../models'
+    if not @field.related.__locked__ then BaseModel.lock @field.related
     real_field = @field.related._schema.get_field_by_name field_name
     real_field.db_field()
 
@@ -47,7 +49,7 @@ DBField::contribute_to_table = (fields, pending_constraints, visited)->
     if @field.related and not (@field.related in visited)
         @defer_fk_constraint = -> yes
         pending_constraints.push """
-            ALTER TABLE #{@field.model._meta.table} 
+            ALTER TABLE #{@field.model._meta.db_table} 
             ADD CONSTRAINT #{@field.db_field()}_refs_#{@get_real_field @field.to_field}
             FOREIGN KEY (#{@field.db_field()}) 
             REFERENCES #{@related_table()} (#{@get_real_field @field.to_field}) DEFERRABLE INITIALLY DEFERRED

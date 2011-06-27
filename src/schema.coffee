@@ -24,13 +24,17 @@ Schema::get_field_by_name = (key)->
     if @aliases[key]
         return @aliases[key]
 
+    for field in @related_fields
+        if field.name is key
+            return field
+
     for field in @fields
         if field.name is key
             return field
     undefined
 
-Schema::register_related_field = (key, field)->
-    @related_fields[key] = field
+Schema::register_related_field = (field)->
+    @related_fields.push field
 
 Schema::set = (key, val)->
     if val instanceof Function

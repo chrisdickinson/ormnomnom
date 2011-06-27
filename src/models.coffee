@@ -36,10 +36,13 @@ BaseModel = (name, model_fn)->
     @
 
 BaseModel.lock = (model_fn)->
-    model_fn.schema = -> throw new Error("#{model_fn::name}'s schema is locked!")
-    model_fn.meta = -> throw new Error("#{model_fn::name}'s meta is locked!")
+    if model_fn.__locked__
+      return
+
+    model_fn.schema = -> throw new Error("#{model_fn._meta.name}'s schema is locked!")
+    model_fn.meta = -> throw new Error("#{model_fn._meta.name}'s meta is locked!")
     @compile model_fn
-    @create_manager model_fn
+    model_fn.__locked__ = yes
 
 BaseModel.set_meta = (model_fn, meta)->
     for key, value of meta

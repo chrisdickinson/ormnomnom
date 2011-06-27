@@ -31,6 +31,8 @@ SQLiteWrapper::execute = (sql, values, mode, model, ready)->
     args = values.slice().concat(stmt_ready)
 
     stmt[if mode is INSERT then 'run' else 'all'].apply stmt, args
+    stmt.on 'error', (err)->
+        ready err
 
 SQLiteWrapper::close = (ready)->
     @client.end()

@@ -24,18 +24,19 @@ QCons::set_mode = (mode)->
 QCons::compile =->
     if @mode is SELECT
         """
-            SELECT #{[@get_db_repr(field) for field in @queryset.model._schema.fields].join(', ')} 
+            SELECT #{(@get_db_repr(field) for field in @queryset.model._schema.fields when field.db_field()).join(', ')} 
             FROM #{@queryset.connection.quote @queryset.model._meta.db_table} #{@get_table @queryset.model}
             #{@join_sql.join(' ')}
             #{if @where_clause then 'WHERE '+@where_clause else ''}
             #{if @ordering.length then 'ORDER BY '+@ordering.join(', ') else ''}
         """.replace /\n/g, ' '
     else if @mode is INSERT
+        fields = (@queryset.connection.quote field.db_field() for field in @queryset.model._schema.fields when not field.primary_key and field.db_field())
         """
-            INSERT INTO #{@queryset.model._meta.db_table} 
-            (#{(@queryset.connection.quote field.db_field() for field in @queryset.model._schema.fields when not field.primary_key).join ', '})
-            VALUES
-            (#{('$'+(i+1) for i in [0...@values.length]).join ', '})
+            INSERT INTO #{@queryset.model._meta.db_table}
+            #{if fields.length then '('+(fields.join ', ')+') VALUES' else ''}
+            #{if fields.length then '('+(('$'+(i+1) for i in [0...@values.length]).join ', ')+')' else ''}
+            #{if not fields.length then 'DEFAULT VALUES' else ''}
         """.replace /\n/g, ' '
     else if @mode is UPDATE
         """
@@ -109,10 +110,18 @@ QCons::register_table = (model)->
         @tables[model._meta.db_table] = "T#{Object.keys(@tables).length}"
     @tables[model._meta.db_table]
 
-QCons::register_join = (by_field)->
+QCons::register_join = (by_field, seen_models)->
     if @joins.indexOf(by_field) is -1
         joins = by_field.join_struct()
+
+        joins = joins.filter (join)->
+            not (join.rhs in seen_models)
+
+        if joins.length is 0
+            return
+
         @joins.push by_field
+
         joins = joins.map (join)=>
             lhs_alias = @register_table join.lhs
             rhs_alias = @register_table join.rhs
@@ -122,7 +131,7 @@ QCons::register_join = (by_field)->
             if @mode in [INSERT, DELETE, UPDATE]
                 "#{tbl join.lhs}.#{@queryset.connection.quote join.lhs_field.db_field()} = #{tbl join.rhs}.#{@queryset.connection.quote join.rhs_field.db_field()}"
             else if @mode is SELECT
-                "LEFT JOIN #{@queryset.connection.quote join.rhs._meta.db_table} #{@queryset.connection.quote rhs_alias} ON (#{@get_db_repr join.lhs_field} = #{@get_db_repr join.rhs_field})"
+                "LEFT JOIN #{tbl join.rhs} #{@queryset.connection.quote rhs_alias} ON (#{@get_db_repr join.lhs_field} = #{@get_db_repr join.rhs_field})"
         @join_sql = @join_sql.concat joins
 
 QCons::get_table = (model)->
@@ -136,11 +145,14 @@ QCons::get_db_repr = (field)->
 QCons::get_field_and_register = (fields)->
     model = @queryset.model
     last_field = null
+    seen_models = [model]
+
     fields.forEach (field)=>
         @register_table model
         if last_field
             new_model = last_field.related
-            @register_join last_field
+            @register_join last_field, seen_models
+            seen_models.push new_model
             model = new_model
             last_field = model._schema.get_field_by_name field
         else
