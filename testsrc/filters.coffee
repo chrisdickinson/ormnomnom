@@ -1,5 +1,6 @@
 {models, exceptions} = require '../'
 {Model} = require './fixtures/models'
+{Related, Many} = require './fixtures/related'
 {unit} = require 'platoon'
 
 module.exports = exports =
@@ -265,4 +266,85 @@ module.exports = exports =
 
                 Model.objects.filter({pk__range:[pk+1, pk+20]}) assert.async (err, rows)->
                     assert.equal rows.length, 0
+    )
+    'test foreign key filtering api':unit(
+        {}
+
+        (assert)->
+            'Test that filtering on local relations works as expected.'
+            expected_anything = "related_anything_#{~~(100*Math.random())}"
+            creation = Related.objects.create
+                model:Model.objects.create {anything:expected_anything, validated:'whatever'}
+
+            creation assert.async (err, related_instance)->
+                assert.fail err
+                Related.objects.filter({model__anything:expected_anything}) assert.async (err, related_list)->
+                    assert.fail err
+                    related = related_list[0]
+                    assert.equal related.pk, related_instance.pk
+                    related.model() assert.async (err, model_lhs)->
+                        related_instance.model() assert.async (err, model_rhs)->
+                            assert.equal model_lhs.pk, model_rhs.pk
+                            assert.equal model_lhs.anything, expected_anything
+                            assert.equal model_rhs.anything, expected_anything
+
+        (assert)->
+            'Test that filtering on reverse relations works as expected.'
+            expected_anything = "related_anything_#{~~(100*Math.random())}"
+            creation = Related.objects.create
+                model:Model.objects.create {anything:expected_anything, validated:'whatever'}
+
+            creation assert.async (err, related_instance)->
+                assert.fail err
+                assert.ok related_instance
+                related_instance.model() assert.async (err, model)->
+                    assert.fail err
+                    assert.ok model
+                    Model.objects.filter({related_set__pk:related_instance.pk}) assert.async (err, data)->
+                        assert.fail err
+                        assert.ok data
+                        assert.equal data.length, 1
+                        assert.equal data[0].pk, model.pk
+
+
+        (assert)->
+            'Test that filtering back onto the originating model works as expected.'
+            expected_anything = "related_anything_#{~~(100*Math.random())}"
+            creation = Related.objects.create
+                model:Model.objects.create {anything:expected_anything, validated:'whatever'}
+
+            creation assert.async (err, related_instance)->
+                assert.fail err
+                assert.ok related_instance
+                related_instance.model() assert.async (err, model)->
+                    assert.fail err
+                    assert.ok model
+                    Model.objects.filter({related_set__model__pk:model.pk}) assert.async (err, data)->
+                        assert.fail err
+                        assert.ok data
+                        assert.equal data.length, 1
+                        assert.equal data[0].pk, model.pk
+
+        (assert)->
+            'Test that filtering on M2M relations works as expected.'
+            creation = Related.objects.create
+                model:Model.objects.create {anything:'lolwut', validated:'whatever'}
+            creation assert.async (err, related)->
+                assert.fail err
+                assert.ok related
+                related.model() assert.async (err, model)->
+                    assert.fail err
+                    assert.ok model
+                    creation = Many.objects.create {}
+                    creation assert.async (err, many)->
+                        assert.fail err
+                        assert.ok many
+                        addition = many.related.add related
+                        addition assert.async (err, data)->
+                            Many.objects.filter({related__model__pk:model.pk}) assert.async (err, rows)->
+                                assert.fail err
+                                assert.ok rows
+                                assert.equal rows.length, 1
+                                assert.equal rows[0].pk, many.pk
+
     )

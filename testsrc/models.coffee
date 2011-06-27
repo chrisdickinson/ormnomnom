@@ -155,7 +155,6 @@ module.exports = exports =
                 expected_name = "anything_#{~~(Math.random()*100)}"
                 instance.anything = expected_name
                 instance.save() assert.async (err, data)->
-                    if err then console.error err.stack
                     assert.fail err
                     Model.objects.get({pk:pk}) assert.async (err, instance2)->
                         assert.fail err

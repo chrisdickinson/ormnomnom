@@ -20,7 +20,9 @@ if testing_backend is 'postgres'
         exec 'createdb test_ormnomnom', ->
             {ns} = require './fixtures/models'
             ns.db_creation 'default', true, ->
-                ready()
+                {ns} = require './fixtures/related'
+                ns.db_creation 'default', true, ->
+                    ready()
 
     platoon.setBeforeFinish (ready)->
         connection = models.Connection.get_connection 'default'
@@ -35,11 +37,13 @@ if testing_backend is 'sqlite'
     platoon.setBeforeStart (ready)->
         {ns} = require './fixtures/models'
         ns.db_creation 'default', true, (err)->
-            ready()
+            {ns} = require './fixtures/related'
+            ns.db_creation 'default', true, ->
+                ready()
 
     platoon.setBeforeFinish (ready)->
-        exec 'rm test_ormnomnom.db', ->
-            ready()
+        ready()#exec 'rm test_ormnomnom.db', ->
+        #    ready()
 
 export_module 'models'
 export_module 'filters'
