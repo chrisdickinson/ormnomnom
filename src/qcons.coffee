@@ -31,7 +31,7 @@ QCons::compile =->
             #{if @ordering.length then 'ORDER BY '+@ordering.join(', ') else ''}
         """.replace /\n/g, ' '
     else if @mode is INSERT
-        fields = (@queryset.connection.quote field.db_field() for field in @queryset.model._schema.fields when not field.primary_key and field.db_field())
+        fields = (@queryset.connection.quote field.db_field() for field in @queryset.model._schema.fields when not field.primary_key and field.db_field() and @payload[field.name])
         """
             INSERT INTO #{@queryset.model._meta.db_table}
             #{if fields.length then '('+(fields.join ', ')+') VALUES' else ''}
@@ -77,6 +77,7 @@ QCons::add_payload = (payload)->
         @keys.push field
         @values.push payload[field_name]
 
+    @payload = payload
 
     if @mode is INSERT
         for field in @queryset.model._schema.fields
@@ -92,7 +93,7 @@ QCons::add_payload = (payload)->
                         else
                             @values.push field.default
                             @keys.push field
-                    else
+                    else if not field.nullable
                         throw new ValidationError "#{field.name} is required"
 
 QCons::add_ordering = (field_name)->
