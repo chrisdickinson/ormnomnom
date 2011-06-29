@@ -33,7 +33,7 @@ DBField::framing = ->
     """
     #{@quote @field.db_field()} 
     #{@sql_type()}
-    #{if @field.nullable then 'NULL' else 'NOT NULL'} 
+    #{if @field.nullable then 'NULL DEFAULT NULL' else 'NOT NULL'} 
     #{if @field.unique then 'UNIQUE' else ''} 
     #{if @field.primary_key then 'PRIMARY KEY' else ''}
     #{@extra()}
