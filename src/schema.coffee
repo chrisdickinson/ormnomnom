@@ -76,8 +76,12 @@ Meta = (name, model)->
 Meta.set_prefix = (prefix) -> @prefix = prefix
 Meta.get_db_table_name = (name)-> if @prefix then @prefix+'_'+lowercase(name) else lowercase name
 
-Meta::get_table_constraints = ->
-    []
+Meta::get_table_constraints = (conn)->
+    constraints = []
+    schema = @model._schema
+    if @unique_together and @unique_together instanceof Array
+        constraints.push "CONSTRAINT #{conn.quote @unique_together.join('_')+'_unique'} (#{(conn.quote(schema.get_field_by_name(field).db_field()) for field in @unique_together).join(', ')})" 
+    constraints
 
 Meta::set = (key, val)->
     @[key] = val
