@@ -62,6 +62,10 @@ o = (extra, sql)->
         new DBField base_field, connection, sql, extra
 
 BASE_FIELDS =
+    date:
+        o null, "DATE"
+    datetime:
+        o null, "DATETIME"
     varchar:
         o null, -> "VARCHAR(#{@field.max_length})"
     integer:
