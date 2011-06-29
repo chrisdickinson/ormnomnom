@@ -52,7 +52,7 @@ DBField::contribute_to_table = (fields, pending_constraints, visited)->
             ALTER TABLE #{@field.model._meta.db_table} 
             ADD CONSTRAINT #{@field.db_field()}_refs_#{@get_real_field @field.to_field}
             FOREIGN KEY (#{@field.db_field()}) 
-            REFERENCES #{@related_table()} (#{@get_real_field @field.to_field}) DEFERRABLE INITIALLY DEFERRED
+            REFERENCES #{@related_table()} (#{@get_real_field @field.to_field}) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
         """.replace(/\n/g, ' ')
 
     fields.push @framing().replace(/\n/g, ' ')
