@@ -27,6 +27,35 @@ Field::create_instance = (name, model)->
     [clone.name, clone.model] = [name, model]
     clone
 
+DateField = (kwargs)->
+    Field.call @, kwargs
+    @
+
+DateField:: = new Field {}
+DateField::db_type = 'date'
+
+DateField::apply_value = (instance, value)->
+    instance[@name] = if not isNaN(~~value) then new Date value else Date.parse value
+
+DateField::validate_comparison = (value)->
+    not isNaN Date.parse value
+
+DateField::validate_value = (value)->
+    if not value?
+        @nullable
+    else
+        not isNaN Date.parse value
+
+DateField::get_prepdb_value = (value)->
+    new Date Date.parse value
+
+DateTimeField = (kwargs)->
+    DateField.call @, kwargs
+    @
+
+DateTimeField:: = new DateField {}
+DateTimeField::db_type = 'datetime'
+
 CharField = (kwargs)->
     Field.call @, kwargs
     {@max_length,@regex}=kwargs
@@ -290,3 +319,5 @@ module.exports = exports =
     CharField:CharField
     TextField:TextField
     ManyToMany:ManyToMany
+    DateField:DateField
+    DateTimeField:DateTimeField
