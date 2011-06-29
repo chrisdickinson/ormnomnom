@@ -191,4 +191,19 @@ module.exports = exports =
             assert.fail model.pk
             assert.throws Error, -> model.delete()
 
+        (assert)->
+            '''Test that creating models with DateFields works as expected'''
+            [{Related}, {Model}] = [require('./fixtures/related'), require('./fixtures/models')]
+            date = new Date
+            creation = Related.objects.create
+                model:Model.objects.create {anything:'anything', validated:'great'}
+                pub_date:date
+
+            creation assert.async (err, data)->
+                assert.fail err
+                assert.isInstance data.pub_date, Date
+                assert.equal data.pub_date.getUTCFullYear(), date.getUTCFullYear()
+                assert.equal data.pub_date.getUTCMonth(), date.getUTCMonth()
+                assert.equal data.pub_date.getUTCDate(), date.getUTCDate()
+
     )
