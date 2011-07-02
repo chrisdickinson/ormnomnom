@@ -21,12 +21,10 @@ Manager::all =->
 Manager::create = (kwargs)->
     q = @start_query()
     base = @get_base_payload() or {}
-
-    clone = Object.create base
     for key, val of kwargs
-        clone[key] = val
+        base[key] = val
 
-    q.create clone
+    q.create base
 
 Manager::delete =->
     @start_query().delete()
