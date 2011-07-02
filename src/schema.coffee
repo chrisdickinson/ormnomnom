@@ -80,7 +80,7 @@ Meta::get_table_constraints = (conn)->
     constraints = []
     schema = @model._schema
     if @unique_together and @unique_together instanceof Array
-        constraints.push "CONSTRAINT #{conn.quote @unique_together.join('_')+'_unique'} (#{(conn.quote(schema.get_field_by_name(field).db_field()) for field in @unique_together).join(', ')})" 
+        constraints.push "CONSTRAINT #{conn.quote @unique_together.join('_')+'_unique'} UNIQUE (#{(conn.quote(schema.get_field_by_name(field).db_field()) for field in @unique_together).join(', ')})" 
     constraints
 
 Meta::set = (key, val)->

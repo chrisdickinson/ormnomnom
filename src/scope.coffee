@@ -71,7 +71,7 @@ Scope::db_creation = (connection, execute=yes, ready)->
             if field.db_field()
                 db_field = connection.negotiate_type field
                 db_field.contribute_to_table fields, pending_constraints, visited
-        table_constraints = model._meta.get_table_constraints() or []
+        table_constraints = model._meta.get_table_constraints(connection) or []
         visited.push model
         sql.push """
             CREATE TABLE #{model._meta.db_table} (
