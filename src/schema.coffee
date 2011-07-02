@@ -59,6 +59,7 @@ Schema::connect_related = ->
     field.connect() for field in @fields when field.needs_connection()
 
 Schema::validate =(kwargs, strict=no)->
+    kwargs = kwargs or {}
     fields = if strict then Object.keys kwargs else base_keys kwargs
     fields.forEach (field_name)=>
         field_instance = @get_field_by_name field_name
