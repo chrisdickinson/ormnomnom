@@ -13,6 +13,7 @@ EventEmitter = (args...) ->
             ret.on 'error', (err)->ready(err, null)
         else
             ready _cache_err, _cache_data
+        undefined
 
     EE.apply ret, args
 
