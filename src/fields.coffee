@@ -59,7 +59,7 @@ DateTimeField::db_type = 'datetime'
 CharField = (kwargs)->
     Field.call @, kwargs
     {@max_length,@regex}=kwargs
-    if @max_length is null then @max_length = 255
+    if not @max_length then @max_length = 255
     @
 
 CharField:: = new Field {}
@@ -84,6 +84,12 @@ TextField = (kwargs)->
 
 TextField:: = new CharField {}
 TextField::db_type = 'text'
+
+TextField::validate_value = (value)->
+    if not value?
+        @nullable
+    else
+        yes
 
 IntegerField = (kwargs)->
     Field.call @, kwargs
