@@ -209,7 +209,8 @@ ForeignKey::connect =->
     mgr.get_base_payload = ->
         base = Manager::get_base_payload.call this
         base = base or {}
-        base[name] = @instance
+        base[field_name] = @instance
+        base
 
     @model.scope.depend_on @related.scope
     @related._schema.register_related_field new ReverseRelation @get_related_name(), @to_field, @
