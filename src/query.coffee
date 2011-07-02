@@ -61,7 +61,7 @@ QuerySet = EventEmitter.subclass (model)->
     )
     @query = null
     @payload = null
-    @limit = null
+    @_limit = null
     @order_by = @model._meta.order_by or null
     @_create = @_delete = no
     @_errored = null
@@ -85,6 +85,8 @@ QuerySet::execute =->
             qcons.add_payload @payload
         else if @_delete
             qcons.set_mode DELETE
+
+        qcons.set_limit @_limit
 
         if @query
             qcons.set_where @query.compile qcons
@@ -176,7 +178,7 @@ QuerySet::order_by = (ordering...)->
 
 QuerySet::limit = (from, to)->
     [from, to] = if to isnt undefined then [from, to] else [0, from]
-    @limit =
+    @_limit =
         from:from
         to:to
     @

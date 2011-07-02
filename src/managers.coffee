@@ -36,7 +36,8 @@ Manager::update = (kwargs)->
 
 Manager::get = (kwargs)->
     ee = new EventEmitter
-    base = @filter(kwargs)
+    # try to grab two: if more than one exists then things are wrong. 
+    base = @filter(kwargs).limit(2)
 
     base.on 'data', (data)=>
         if data.length > 1

@@ -13,6 +13,7 @@ QCons = (queryset)->
     @join_sql = []
     @values = []
     @ordering = []
+    @limit = null
     @where_clause = null
     @field_aliases = {}
     @register_table @queryset.model
@@ -20,6 +21,9 @@ QCons = (queryset)->
 
 QCons::set_mode = (mode)->
     @mode = mode
+
+QCons::set_limit = (limit)->
+    @limit = limit
 
 QCons::compile =->
     if @mode is SELECT
