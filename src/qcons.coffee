@@ -33,9 +33,10 @@ QCons::compile =->
             #{@join_sql.join(' ')}
             #{if @where_clause then 'WHERE '+@where_clause else ''}
             #{if @ordering.length then 'ORDER BY '+@ordering.join(', ') else ''}
+            #{if @limit then 'LIMIT '+@limit.to+' OFFSET '+@limit.from else ''} 
         """.replace /\n/g, ' '
     else if @mode is INSERT
-        fields = (@queryset.connection.quote field.db_field() for field in @queryset.model._schema.fields when not field.primary_key and field.db_field() and @payload[field.name])
+        fields = (@queryset.connection.quote field.db_field() for field in @keys when not field.primary_key and field.db_field and @payload[field.name] isnt undefined)
         """
             INSERT INTO #{@queryset.model._meta.db_table}
             #{if fields.length then '('+(fields.join ', ')+') VALUES' else ''}
@@ -50,18 +51,23 @@ QCons::compile =->
             #{if @where_clause then 'WHERE '+@where_clause else ''}
             #{if @join_sql.length then ' AND (' + (@join_sql.join ' AND ')+')' else ''}
             #{if @ordering.length then 'ORDER BY '+@ordering.join ', ' else ''}
+            #{if @limit then 'LIMIT '+@limit.to+' OFFSET '+@limit.from else ''} 
         """.replace /\n/g, ' '
     else if @mode is DELETE
         """
             DELETE FROM #{@queryset.model._meta.db_table}
             #{if @where_clause then 'WHERE '+@where_clause else ''}
             #{if @join_sql.length then ' AND (' + (@join_sql.join ' AND ')+')' else ''}
+            #{if @limit then 'LIMIT '+@limit.to+' OFFSET '+@limit.from else ''} 
         """.replace /\n/g, ' '
 
 QCons::prepared_values = ->
     (@keys[i].get_prepdb_value @values[i] for i in [0...@keys.length]).concat(@values.slice(@keys.length))
 
 QCons::compile_where_clause = (fields, cmp, value)->
+    if @mode is INSERT
+        return
+
     field = @get_field_and_register fields
     cmp.compile field, value, (value)=>
         @values.push value
