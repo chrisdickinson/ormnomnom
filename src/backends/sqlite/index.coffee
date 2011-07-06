@@ -1,6 +1,7 @@
 {Connection} = require '../../connection'
 {AND, OR, NOT, SELECT, INSERT, UPDATE, DELETE} = require '../../constants'
 {BASE_FIELDS} = require './fields'
+{comparisons} = require './comparisons'
 
 try
     sqlite3 = require 'sqlite3'
@@ -52,6 +53,9 @@ SQLiteConnection::quote = (what)->
 
 SQLiteConnection::negotiate_type = (field, force_type)->
     BASE_FIELDS[force_type or field.db_type](field, @)
+
+SQLiteConnection::comparison = (type)->
+    comparisons[type]
 
 SQLiteConnection::close = (ready)->
     @client (client)->

@@ -1,8 +1,9 @@
-DBField = (base_field, connection, sql_type, extra)->
+DBField = (base_field, connection, sql_type, extra, map)->
     @field = base_field
     @connection = connection
     @_sql_type = sql_type
     @_extra = extra
+    @map = map
     @
 
 DBField::defer_fk_constraint = -> no
@@ -57,9 +58,12 @@ DBField::contribute_to_table = (fields, pending_constraints, visited)->
 
     fields.push @framing().replace(/\n/g, ' ')
 
-o = (extra, sql)->
+o = (extra, sql, map)->
     (base_field, connection)->
-        new DBField base_field, connection, sql, extra
+        new DBField base_field, connection, sql, extra, map or {
+            js_to_db:(val)->val
+            db_to_js:(val)->val
+        }
 
 BASE_FIELDS =
     date:

@@ -1,30 +1,36 @@
 {EventEmitter} = require './events'
-{QCons, Comparison} = require './qcons'
+{QCons} = require './qcons'
 {Connection} = require './connection'
 {AND, OR, NOT, SELECT, INSERT, UPDATE, DELETE} = require './constants'
+
+valid_comparisons = [
+    'exact'
+    'iexact'
+    'lt'
+    'gt'
+    'lte'
+    'gte'
+    'in'
+    'isnull'
+    'contains'
+    'startswith'
+    'endswith'
+    'icontains'
+    'istartswith'
+    'iendswith'
+    'range'
+    'year'
+    'month'
+    'day'
+    'week_day'
+    'regex'
+]
 
 clone = (obj, props)->
     out = Object.create obj
     for key, val of props
         out[key] = val
     out
-
-o = (str, special_validation, decorate_value)->
-    new Comparison str, special_validation, decorate_value
-
-comparisons = {
-    exact:o '$1 = $2'
-    lt:o '$1 < $2'
-    gt:o '$1 > $2'
-    lte:o '$1 <= $2'
-    gte:o '$1 >= $2'
-    in:o '$1 in (@)'
-    isnull:o '$1 IS ? NULL'
-    contains:o '$1 LIKE $2', null, (val)->"%#{val.replace /%/g, '\\%'}%"
-    startswith:o '$1 LIKE $2', null, (val)-> "#{val.replace /%/g, '\\%'}%"
-    endswith:o '$1 LIKE $2', null, (val)-> "%#{val.replace /%/g, '\\%'}"
-    range:o '$1 BETWEEN $2 AND $3'
-}
 
 Query = (conn, children)->
     @conn = conn
@@ -50,7 +56,7 @@ QueryLeaf = (field, value, cmp)->
     @
 
 QueryLeaf::compile = (qcons)->
-    qcons.compile_where_clause @field, @cmp, @value
+    qcons.compile_where_clause @field, qcons.queryset.connection.comparison(@cmp), @value
 
 QuerySet = EventEmitter.subclass (model)->
     @using_connection = 'default'
@@ -124,11 +130,9 @@ QuerySet::_select_query = (kwargs)->
         children = []
         for key, val of kwargs
             [fields..., cmp] = key.split '__'
-            if comparisons[cmp]
-                cmp = comparisons[cmp]
-            else
+            if not (cmp in valid_comparisons)
                 fields.push cmp
-                cmp = comparisons['exact']
+                cmp = 'exact'
 
             leaf = new QueryLeaf fields, val, cmp
 

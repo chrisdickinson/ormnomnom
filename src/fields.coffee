@@ -176,7 +176,7 @@ ForeignKey::join_struct =->
     [{lhs:@model, lhs_field:@, rhs:@related, rhs_field:@related._schema.get_field_by_name(@to_field), join_type:@join_type()}]
 
 ForeignKey::get_prepdb_value = (val)->
-    val[@to_field]
+    @related._schema.get_field_by_name(@to_field).get_prepdb_value val[@to_field]
 
 ForeignKey::connect =->
     if typeof @related is 'string'

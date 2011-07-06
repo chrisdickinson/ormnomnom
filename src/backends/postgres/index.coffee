@@ -1,6 +1,7 @@
 {Connection} = require '../../connection'
 {AND, OR, NOT, SELECT, INSERT, UPDATE, DELETE} = require '../../constants'
 {BASE_FIELDS} = require './fields'
+{comparisons} = require './comparisons'
 
 try
     pg = require 'pg'
@@ -38,6 +39,9 @@ PGConnection::constraint = (constraint)->
 
 PGConnection::quote = (what)->
     "\"#{what.replace /\"/g, '\"\"'}\""
+
+PGConnection::comparison = (name)->
+    comparisons[name]
 
 PGConnection::negotiate_type = (field, force_type)->
     BASE_FIELDS[force_type or field.db_type](field, @)

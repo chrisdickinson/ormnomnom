@@ -54,4 +54,7 @@ Connection::constraint = (constraint)->
 Connection::negotiate_type = (field_type)->
     throw new Error 'Not implemented in base connection'
 
+Connection::comparison = (comparison)->
+    throw new Error 'Not implemented in base connection'
+
 exports.Connection = Connection

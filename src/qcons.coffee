@@ -62,14 +62,19 @@ QCons::compile =->
         """.replace /\n/g, ' '
 
 QCons::prepared_values = ->
-    (@keys[i].get_prepdb_value @values[i] for i in [0...@keys.length]).concat(@values.slice(@keys.length))
+    out = []
+    for i in [0...@keys.length]
+        field = @keys[i]
+        db_field = @queryset.connection.negotiate_type field
+        out.push db_field.map.js_to_db field.get_prepdb_value @values[i]
+    out.concat(@values.slice(@keys.length))
 
 QCons::compile_where_clause = (fields, cmp, value)->
     if @mode is INSERT
         return
 
     field = @get_field_and_register fields
-    cmp.compile field, value, (value)=>
+    cmp.compile @queryset.connection, field, value, (value)=>
         @values.push value
         @values.length
 
@@ -179,8 +184,18 @@ QCons::get_field_and_register = (fields)->
 QCons::coerce = (rows)->
     {BaseModel} = require './models'
 
+    connection = @queryset.connection
     if Array.isArray rows
         model = @queryset.model
+
+        db_to_js = (fn)->
+            (row)->
+                out = {}
+                for key, val of row
+                    db_field = connection.negotiate_type model._schema.get_field_by_db_name key
+                    out[key] = db_field.map.db_to_js val
+                fn out
+
         if @mode is INSERT
             # this is dumb, but if we have the old values, then we really should
             # use them.
@@ -196,7 +211,7 @@ QCons::coerce = (rows)->
             process = (row)->
                 new model row
 
-        rows = rows.map process
+        rows = rows.map db_to_js process
         rows.sql = => @compile()
         rows.values = => @values
 
@@ -210,12 +225,17 @@ Comparison = (string, special_validation, decorate_value)->
     @decorate_value = decorate_value or null
     @
 
-Comparison::compile = (qcons_field, value, register_value)->
+Comparison::compile = (connection, qcons_field, value, register_value)->
     validation = qcons_field.field.validate_comparison.bind qcons_field.field
+    db_field = connection.negotiate_type qcons_field.field
+
+    special_validation = no
     if @special_validation
+        special_validation = yes
         validation = @special_validation
 
     decorate = (val)->val
+    map = if special_validation then (v)->v else db_field.map.js_to_db
     if @decorate_value
         decorate = @decorate_value
 
@@ -223,16 +243,16 @@ Comparison::compile = (qcons_field, value, register_value)->
         values = value.map (val)->
             if not validation val
                 throw new ValidationError "#{val} is not a valid value for #{qcons_field.field.model._meta.name}.#{qcons_field.field.name}"
-            register_value decorate qcons_field.field.get_prepdb_value val
+            register_value decorate map qcons_field.field.get_prepdb_value val
         str = @string.replace '@', '$'+values.join(',$')
     else if @string.indexOf('?') isnt -1
         value = !!value
         str = @string.replace '?', ['NOT', ''][~~value]
     else if @string.indexOf('BETWEEN') isnt -1
         [lower, upper] = value
-        lower = decorate qcons_field.field.get_prepdb_value lower
-        upper = decorate qcons_field.field.get_prepdb_value upper
-
+        lower = decorate map qcons_field.field.get_prepdb_value lower
+        upper = decorate map qcons_field.field.get_prepdb_value upper
+        
         lower = register_value lower
         upper = register_value upper
 
@@ -241,13 +261,10 @@ Comparison::compile = (qcons_field, value, register_value)->
     else
         if not validation value
             throw new ValidationError "#{value} is not a valid value for #{qcons_field.field.model._meta.name}.#{qcons_field.field.name}"
-        value = register_value decorate qcons_field.field.get_prepdb_value value
+        value = register_value decorate map qcons_field.field.get_prepdb_value value
         str = @string.replace '$2', '$'+value
 
-    # in case we need to decorate the type of the comparison, like __year or __month or whatever.
-    db_field = if @decorate_field then @decorate_field qcons_field.db_field else qcons_field.db_field
-
-    str.replace '$1', db_field
+    str.replace '$1', qcons_field.db_field
 
 exports.Comparison = Comparison
 exports.QCons = QCons
