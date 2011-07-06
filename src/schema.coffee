@@ -55,7 +55,6 @@ Schema::alias = (name, to_field)->
     @aliases[name] = to_field
 
 Schema::connect_related = ->
-    fk = @get_field_by_name 'hometown'
     field.connect() for field in @fields when field.needs_connection()
 
 Schema::validate =(kwargs, strict=no)->
