@@ -36,7 +36,7 @@ QCons::compile =->
             #{if @limit then 'LIMIT '+@limit.to+' OFFSET '+@limit.from else ''} 
         """.replace /\n/g, ' '
     else if @mode is INSERT
-        fields = (@queryset.connection.quote field.db_field() for field in @keys when not field.primary_key and field.db_field and @payload[field.name] isnt undefined)
+        fields = (@queryset.connection.quote field.db_field() for field in @keys when (not field.primary_key or @payload[field.name] isnt undefined) and field.db_field)
         """
             INSERT INTO #{@queryset.model._meta.db_table}
             #{if fields.length then '('+(fields.join ', ')+') VALUES' else ''}
