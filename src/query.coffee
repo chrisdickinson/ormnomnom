@@ -83,7 +83,7 @@ QuerySet::execute =->
         @connection = Connection.get_connection @using_connection
     ready = =>
         qcons.set_mode SELECT
-        if @payload
+        if @payload or @_create
             if @_create
                 qcons.set_mode INSERT
             else

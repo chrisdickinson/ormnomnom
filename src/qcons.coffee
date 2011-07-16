@@ -102,12 +102,18 @@ QCons::add_payload = (payload)->
                         field
                     else if field.default
                         if field.default instanceof Function
-                            field.default (val)=>
+                            ret = field.default (val)=>
                                 @values.push val
                                 @keys.push field
+                                @payload[field.name] = val
+                            if ret?
+                                @values.push ret
+                                @keys.push field
+                                @payload[field.name] = ret 
                         else
                             @values.push field.default
                             @keys.push field
+                            @payload[field.name] = field.default
                     else if not field.nullable
                         throw new ValidationError "#{field.name} is required"
 
