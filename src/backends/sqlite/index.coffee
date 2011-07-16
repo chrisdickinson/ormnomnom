@@ -24,7 +24,7 @@ SQLiteWrapper::execute = (sql, values, mode, model, ready)->
         else
             if mode is INSERT
                 lastID = @lastID
-                client.all "SELECT * FROM #{model._meta.db_table} WHERE \"#{model._schema.get_field_by_name('pk').db_field()}\" = $1", lastID, (err, data)->
+                client.all "SELECT * FROM #{model._meta.db_table} WHERE \"_ROWID_\" = $1", lastID, (err, data)->
                     ready err, data
             else
                 ready err, rows
