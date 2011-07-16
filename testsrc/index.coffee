@@ -42,8 +42,9 @@ if testing_backend is 'sqlite'
                 ready()
 
     platoon.setBeforeFinish (ready)->
-        ready()#exec 'rm test_ormnomnom.db', ->
-        #    ready()
+        exec 'rm test_ormnomnom.db', ->
+            ready()
 
+export_module 'fields'
 export_module 'models'
 export_module 'filters'
