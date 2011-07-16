@@ -111,13 +111,16 @@ Scope::db_deletion = (connection, execute=yes, ready)->
     scope = @
     sql = []
     recurse = (model)->
+        if model not in models then return
+
+        drop_sql = connection.drop_table model
+        if not (drop_sql in sql) then sql.push drop_sql
+        models.splice models.indexOf(model), 1
         for field in model._schema.fields
             if field instanceof ForeignKey and field.related.scope is scope
                 recurse field.related
-        drop_sql = connection.drop_table model
-        if not (drop_sql in sql) then sql.push drop_sql
-
-        models.splice models.indexOf(model), 1
+            else if field.through and field.through.scope is scope
+                recurse field.through
 
     while models.length
         recurse models[0]
