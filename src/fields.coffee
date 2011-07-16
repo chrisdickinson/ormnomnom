@@ -277,7 +277,7 @@ ManyToMany::connect =->
             base = Manager::start_query.call mgr_local
             filter = {}
             filter["#{to_field.get_related_name()}__#{from_field.name}__pk__exact"] = @instance.pk
-            @filter filter
+            base.filter filter
 
         through = @through
 
@@ -297,7 +297,7 @@ ManyToMany::connect =->
             base = Manager::start_query.call mgr_foreign
             filter = {}
             filter["#{from_field.get_related_name()}__#{to_field.name}__pk__exact"] = @instance.pk
-            @filter filter
+            base.filter filter
 
         mgr_foreign.add = (item) ->
             kwargs = {}
