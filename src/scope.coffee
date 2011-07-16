@@ -98,4 +98,43 @@ Scope::db_creation = (connection, execute=yes, ready)->
     else
         console.log sql
 
+Scope::db_deletion = (connection, execute=yes, ready)->
+    if typeof(connection) is 'string'
+        connection = Connection.get_connection connection
+
+    if execute instanceof Function
+        ready = execute
+        execute = yes
+
+    models = (model for name, model of @models)
+    {ForeignKey} = require './fields'
+    scope = @
+    sql = []
+    recurse = (model)->
+        for field in model._schema.fields
+            if field instanceof ForeignKey and field.model.scope is scope
+                recurse field.model
+        sql.push "DROP TABLE #{connection.quote model._meta.db_table}"
+        models.splice models.indexOf(model), 1
+
+    while models.length
+        recurse models[0]
+
+    if execute
+        [errors, data] = [[],[]]
+
+        recurse = ->
+            ee = connection.execute sql.shift(), [], null, null
+            done = ->
+                if sql.length
+                    recurse()
+                else
+                    ready(errors, data)
+
+            ee.on 'err', (err)-> [errors.push(err), done()]
+            ee.on 'data', (result)-> [data.push(result), done()]
+
+        if sql.length then recurse() else ready(errors, data)
+    else
+        console.log sql.join(';\n')+';\n'
 exports.Scope = Scope
