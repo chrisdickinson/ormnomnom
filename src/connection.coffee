@@ -45,6 +45,9 @@ Connection::execute = (sql, values, mode, model)->
             if err then ee.emit('error', err) else ee.emit('data', data)
     ee
 
+Connection::drop_table = (model)->
+    "DROP TABLE #{@quote model._meta.db_table}"
+
 Connection::close = (ready)->
     throw new Error 'Not implemented in base connection'
 

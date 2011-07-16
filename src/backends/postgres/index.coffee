@@ -50,6 +50,9 @@ PGConnection::close = (ready)->
     @client (client)->
         client.close ready
 
+PGConnection::drop_table = (model)->
+    "#{Connection::drop_table.call @, model} CASCADE"
+
 PGConnection::get_client =(ready)->
     config =
         user: @metadata.user
