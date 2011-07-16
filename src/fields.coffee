@@ -250,7 +250,8 @@ ManyToMany::connect =->
             from:models.ForeignKey @model, {}
             to:models.ForeignKey @related, {}
         }
-        model._schema.alias 'pk', model._schema.get_field_by_name 'id'
+        {BaseModel} = require './models'
+        BaseModel.lock model
 
         @through = model
 
