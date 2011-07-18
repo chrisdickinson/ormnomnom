@@ -71,7 +71,7 @@ QuerySet = EventEmitter.subclass (model)->
     @order_by = @model._meta.order_by or null
     @_create = @_delete = no
     @_errored = null
-
+    @_fields = null
     @_ready_count = 0
     @
 
@@ -91,6 +91,8 @@ QuerySet::execute =->
             qcons.add_payload @payload
         else if @_delete
             qcons.set_mode DELETE
+
+        qcons.set_fields @_fields or @model._schema.real_fields()
 
         qcons.set_limit @_limit
 
@@ -124,6 +126,18 @@ QuerySet::execute =->
 QuerySet::using = (name)->
     @using_connection = name
     @
+
+QuerySet::count = QuerySet::length = (ready)->
+    {Count} = require './fields'
+    @_fields = [new Count 'count']
+
+    ee = new EventEmitter
+    @ (err, data) ->
+        if err
+            ee.emit 'error', err
+        else
+            ee.emit 'data', data[0].count
+    ee
 
 QuerySet::_select_query = (kwargs)->
     if @model._schema.validate kwargs

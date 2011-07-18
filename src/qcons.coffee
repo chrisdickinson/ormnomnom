@@ -16,8 +16,12 @@ QCons = (queryset)->
     @limit = null
     @where_clause = null
     @field_aliases = {}
+    @select_fields = null
     @register_table @queryset.model
     @
+
+QCons::set_fields = (fields)->
+    @select_fields = fields
 
 QCons::set_mode = (mode)->
     @mode = mode
@@ -28,7 +32,7 @@ QCons::set_limit = (limit)->
 QCons::compile =->
     if @mode is SELECT
         """
-            SELECT #{(@get_db_repr(field) for field in @queryset.model._schema.fields when field.db_field()).join(', ')} 
+            SELECT #{(@get_db_repr(field) for field in @select_fields).join(', ')} 
             FROM #{@queryset.connection.quote @queryset.model._meta.db_table} #{@get_table @queryset.model}
             #{@join_sql.join(' ')}
             #{if @where_clause then 'WHERE '+@where_clause else ''}
@@ -168,7 +172,10 @@ QCons::get_table = (model)->
     return @queryset.connection.quote @tables[model._meta.db_table]
 
 QCons::get_db_repr = (field)->
-    "#{@get_table field.model}.#{@queryset.connection.quote field.db_field()}"
+    if field.db_repr
+        field.db_repr(@queryset.connection)
+    else
+        "#{@get_table field.model}.#{@queryset.connection.quote field.db_field()}"
 
 QCons::get_field_and_register = (fields)->
     model = @queryset.model
@@ -197,16 +204,26 @@ QCons::coerce = (rows)->
     {BaseModel} = require './models'
 
     connection = @queryset.connection
+    fields = @select_fields
+    num_real_fields = fields.length - (field for field in fields when field.is_decoration).length
+
     if Array.isArray rows
         model = @queryset.model
 
         db_to_js = (fn)->
             (row)->
                 out = {}
-                for key, val of row
-                    db_field = connection.negotiate_type model._schema.get_field_by_db_name key
-                    out[key] = db_field.map.db_to_js val
-                fn out
+                decoration = {}
+                if fields
+                    for field in fields
+                        db_field = connection.negotiate_type field
+                        key = field.db_field()
+                        val = db_field.map.db_to_js row[key]
+                        if field.is_decoration
+                            decoration[key] = val
+                        else
+                            out[key] = val
+                fn out, decoration
 
         if @mode is INSERT
             # this is dumb, but if we have the old values, then we really should
@@ -220,8 +237,14 @@ QCons::coerce = (rows)->
                         instance._fk_cache[field.name].instance = value
                 instance
         else
-            process = (row)->
-                new model row
+            process = (row, decoration)->
+                if num_real_fields
+                    instance = new model row
+                    for key, val in decoration
+                        instance[key] = val
+                    instance
+                else
+                    decoration
 
         rows = rows.map db_to_js process
         rows.sql = => @compile()

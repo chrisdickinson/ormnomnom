@@ -54,6 +54,9 @@ Schema::set = (key, val)->
 Schema::alias = (name, to_field)->
     @aliases[name] = to_field
 
+Schema::real_fields = ->
+    (field for field in @fields when field.db_field())
+
 Schema::connect_related = ->
     field.connect() for field in @fields when field.needs_connection()
 

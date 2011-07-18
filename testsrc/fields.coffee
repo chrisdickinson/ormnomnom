@@ -1,23 +1,4 @@
-{unit, test} = require 'platoon'
-{models, exceptions} = require '../'
-
-unittest = (ns, functions...)->
-    coerce = (fn)->
-        r = fn.bind({}, ns)
-        r.__doc__ = fn.__doc__
-        r
-
-    unit(
-        {
-            setup:(ready)->
-                ns.db_creation 'default', yes, (err, data)->
-                    ready()
-            teardown:(ready)->
-                ns.db_deletion 'default', yes, (err, data)->
-                    ready()
-        }
-        (coerce fn for fn in functions)...
-    )
+{unittest, test, models, exceptions} = require './_utils'
 
 module.exports = exports =
     'test autofield pk':unittest(
@@ -170,6 +151,7 @@ module.exports = exports =
                 assert.fail err
                 assert.ok model
                 assert.equal model.pk, expected
+
                 M2MModel.objects.create({name:expected+'_m2m'}) assert.async (err, m2m)->
                     assert.fail err
                     assert.ok m2m

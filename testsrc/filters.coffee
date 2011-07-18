@@ -1,7 +1,6 @@
-{models, exceptions} = require '../'
 {Model} = require './fixtures/models'
 {Related, Many} = require './fixtures/related'
-{unit} = require 'platoon'
+{models, exceptions, unittest, unit, test} = require './_utils'
 
 module.exports = exports =
     'test basic api':unit(
@@ -368,4 +367,49 @@ module.exports = exports =
                                 assert.ok rows
                                 assert.equal rows.length, 1
                                 assert.equal rows[0].pk, related.pk
+    )
+
+    'test of count':unittest(
+        models.namespace 'count', (ns)->
+            Countable = ns.create 'Countable'
+            Countable.schema
+                some_random_value:models.CharField {default:->'lol'}
+
+        test "Test that count works as expected", (ns, assert)->
+            num = ~~(Math.random() * 10) + 1
+            expected = num
+            {Countable} = ns.models
+            ready = (err, data)->
+                Countable.objects.all().count() assert.async (err, data)->
+                    assert.fail err
+                    assert.ok data
+                    assert.equal data, expected
+
+            for i in [0...num]
+                Countable.objects.create({}) assert.async (err, data)->
+                    assert.fail err
+                    --num
+                    if num is 0 then ready()
+
+        test "Test that count works on filtered objects", (ns, assert)->
+            num = ~~(Math.random() * 10) + 10
+            expected = 0
+            {Countable} = ns.models
+            ready = (err, data)->
+                Countable.objects.filter({some_random_value:'okay'}).count() assert.async (err, data)->
+                    assert.fail err
+                    assert.ok data
+                    assert.equal data, expected
+
+            for i in [0...num]
+                creation = {some_random_value:'blah'}
+                if Math.random() > 0.4
+                    ++expected
+                    creation = {some_random_value:'okay'}
+
+                Countable.objects.create(creation) assert.async (err, data)->
+                    assert.fail err
+                    --num
+                    if num is 0 then ready()
+
     )
