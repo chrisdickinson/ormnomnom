@@ -318,7 +318,20 @@ ManyToMany::connect =->
         @model._schema.register_related_field @name, @
         @related._schema.register_related_field new ReverseRelation @get_related_name(), @to_field, @
 
+Count = (alias)->
+    @alias = alias
+    @
+
+Count:: = new PositiveIntegerField {}
+Count::is_decoration = yes
+Count::db_repr = (connection)->
+    "COUNT(*) as #{connection.quote @alias}"
+
+Count::db_field = ->
+    @alias
+
 module.exports = exports =
+    Count:Count
     Field:Field
     ForeignKey:ForeignKey
     IntegerField:IntegerField
