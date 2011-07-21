@@ -86,23 +86,20 @@ Scope::db_creation = (connection, execute=yes, ready)->
         sql.push (connection.constraint constraint for constraint in pending_constraints).join ';'
 
     if execute
-        readyCount = sql.length
-        sql.forEach (stmt)->
-          if not sql.length
-            --readyCount
-            if readyCount == 0
-                ready null, null
-          else
-              ee = connection.execute stmt, [], null, null
-              ee.on 'error', -> 
-                  --readyCount
-                  if readyCount == 0
-                    ready null, null
+        [errors, data] = [[],[]]
 
-              ee.on 'data', ->
-                  --readyCount
-                  if readyCount == 0
-                    ready null, null
+        recurse = ->
+            ee = connection.execute sql.shift(), [], null, null
+            done = ->
+                if sql.length
+                    recurse()
+                else
+                    ready(errors, data)
+
+            ee.on 'err', (err)-> [errors.push(err), done()]
+            ee.on 'data', (result)-> [data.push(result), done()]
+
+        if sql.length then recurse() else ready(errors, data)
     else
         console.log sql
 
