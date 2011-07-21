@@ -73,28 +73,36 @@ Scope::db_creation = (connection, execute=yes, ready)->
                 db_field.contribute_to_table fields, pending_constraints, visited
         table_constraints = model._meta.get_table_constraints(connection) or []
         visited.push model
-        sql.push """
+
+        _sql = """
             CREATE TABLE #{model._meta.db_table} (
                 #{fields.join ', '}
                 #{if table_constraints.length then ', '+table_constraints.join ', ' else ''}
             );
         """
+        sql.push _sql
 
-    sql.push (connection.constraint constraint for constraint in pending_constraints).join ';'
+    if pending_constraints.length
+        sql.push (connection.constraint constraint for constraint in pending_constraints).join ';'
 
     if execute
         readyCount = sql.length
         sql.forEach (stmt)->
-          ee = connection.execute stmt, [], null, null
-          ee.on 'error', -> 
-              --readyCount
-              if readyCount == 0
+          if not sql.length
+            --readyCount
+            if readyCount == 0
                 ready null, null
+          else
+              ee = connection.execute stmt, [], null, null
+              ee.on 'error', -> 
+                  --readyCount
+                  if readyCount == 0
+                    ready null, null
 
-          ee.on 'data', ->
-              --readyCount
-              if readyCount == 0
-                ready null, null
+              ee.on 'data', ->
+                  --readyCount
+                  if readyCount == 0
+                    ready null, null
     else
         console.log sql
 
