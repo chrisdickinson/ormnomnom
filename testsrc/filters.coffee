@@ -379,14 +379,15 @@ module.exports = exports =
             num = ~~(Math.random() * 10) + 1
             expected = num
             {Countable} = ns.models
-            ready = (err, data)->
+            ready = assert.async (err, data)->
+                assert.fail err
                 Countable.objects.all().count() assert.async (err, data)->
                     assert.fail err
                     assert.ok data
                     assert.equal data, expected
 
             for i in [0...num]
-                Countable.objects.create({}) assert.async (err, data)->
+                Countable.objects.create({}) (err, data)->
                     assert.fail err
                     --num
                     if num is 0 then ready()
@@ -395,21 +396,27 @@ module.exports = exports =
             num = ~~(Math.random() * 10) + 10
             expected = 0
             {Countable} = ns.models
+
+            finish = assert.async -> lol?
+
             ready = (err, data)->
+                assert.fail err
+                finish()
                 Countable.objects.filter({some_random_value:'okay'}).count() assert.async (err, data)->
                     assert.fail err
                     assert.ok data
                     assert.equal data, expected
 
-            for i in [0...num]
-                creation = {some_random_value:'blah'}
-                if Math.random() > 0.4
-                    ++expected
-                    creation = {some_random_value:'okay'}
-
-                Countable.objects.create(creation) assert.async (err, data)->
+            recurse = (err, data)->
+                --num
+                if num is 0
+                    ready()
+                else
                     assert.fail err
-                    --num
-                    if num is 0 then ready()
-
+                    creation = {some_random_value:'blah'}
+                    if Math.random() > 0.4
+                        ++expected
+                        creation = {some_random_value:'okay'}
+                    Countable.objects.create(creation) assert.async recurse
+            recurse()
     )
