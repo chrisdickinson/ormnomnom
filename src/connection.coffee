@@ -60,4 +60,8 @@ Connection::negotiate_type = (field_type)->
 Connection::comparison = (comparison)->
     throw new Error 'Not implemented in base connection'
 
+Connection::db_field_type = ->
+    {DBField} = require './backends/fields'
+    DBField
+
 exports.Connection = Connection

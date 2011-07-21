@@ -60,7 +60,8 @@ DBField::contribute_to_table = (fields, pending_constraints, visited)->
 
 o = (extra, sql, map)->
     (base_field, connection)->
-        new DBField base_field, connection, sql, extra, map or {
+        field_class = connection.db_field_type()
+        new field_class base_field, connection, sql, extra, map or {
             js_to_db:(val)->val
             db_to_js:(val)->val
         }

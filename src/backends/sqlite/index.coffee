@@ -1,6 +1,6 @@
 {Connection} = require '../../connection'
 {AND, OR, NOT, SELECT, INSERT, UPDATE, DELETE} = require '../../constants'
-{BASE_FIELDS} = require './fields'
+{BASE_FIELDS, DBField} = require './fields'
 {comparisons} = require './comparisons'
 
 try
@@ -68,5 +68,7 @@ SQLiteConnection::get_client =(ready)->
     db = new sqlite3.Database config.database, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err)->
         if err then throw err
         ready new SQLiteWrapper db
+
+SQLiteConnection::db_field_type =-> DBField
 
 exports.Connection = SQLiteConnection
