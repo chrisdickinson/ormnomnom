@@ -42,6 +42,10 @@ Connection::execute = (sql, values, mode, model)->
     ee = new EventEmitter
     @client =>
         @_client.execute sql, values, mode, model, (err, data)->
+            if err
+                err.__sql = sql
+                err.__values = values
+
             if err then ee.emit('error', err) else ee.emit('data', data)
     ee
 
