@@ -55,7 +55,7 @@ models.namespace('blog', function(ns) {
         'ordering':models.PositiveIntegerField
     });
 
-    Schema.meta({
+    Section.meta({
         'order_by':['ordering'],
         'unique_together':['ordering', 'post']
     });
