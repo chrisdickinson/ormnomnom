@@ -33,5 +33,7 @@ SQLITE_BASE_FIELDS.datetime = o null, 'DATETIME', {
     db_to_js:(val)->if val is null then val else new Date(val*1000)
 }
 
+SQLITE_BASE_FIELDS.bigint = o null, 'INTEGER'
+
 exports.BASE_FIELDS = SQLITE_BASE_FIELDS
 exports.DBField = SQLiteDBField

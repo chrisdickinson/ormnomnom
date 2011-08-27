@@ -117,6 +117,7 @@ PositiveIntegerField = (kwargs)->
     @
 
 PositiveIntegerField:: = new IntegerField {}
+PositiveIntegerField::db_type = 'bigint'
 
 AutoField = (kwargs)->
     kwargs.primary_key = yes

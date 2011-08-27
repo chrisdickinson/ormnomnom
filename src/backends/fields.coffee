@@ -75,6 +75,8 @@ BASE_FIELDS =
         o null, -> "VARCHAR(#{@field.max_length})"
     integer:
         o null, "INTEGER"
+    bigint:
+        o null, "BIGINT"
     text:
         o null, "TEXT"
     id:
