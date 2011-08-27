@@ -11,21 +11,23 @@ catch err
     catch err
         throw new Error '``pg`` must be installed to use the postgres backend.'
 
-PGWrapper = (client)->
-    @client = client
+PGWrapper = (config)->
+    @config = config
     @
 
 PGWrapper::execute = (sql, values, mode, model, ready)->
     if mode is INSERT
         sql += ' RETURNING *'
-    @client.query sql, values, (err, data)->
-        if mode in [SELECT, INSERT]
-            ready err, if not err then data.rows else null
-        else
-            ready err, data
+
+    pg.connect @config, (err, client)->
+      client.query sql, values, (err, data)->
+          if mode in [SELECT, INSERT]
+              ready err, if not err then data.rows else null
+          else
+              ready err, data
 
 PGWrapper::close = (ready)->
-    @client.end()
+    #@client.end()
     if ready instanceof Function then ready()
 
 PGConnection = (metadata)->
@@ -61,8 +63,6 @@ PGConnection::get_client =(ready)->
         host: @metadata.host or 'localhost'
         port: @metadata.port or 5432
 
-    pg.connect config, (err, client)->
-        if err then throw err
-        ready new PGWrapper client
+    ready new PGWrapper config
 
 exports.Connection = PGConnection
