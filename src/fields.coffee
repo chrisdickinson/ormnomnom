@@ -72,7 +72,7 @@ CharField::validate_value = (value)->
     if not value?
         @nullable
     else
-        valid = value.length < @max_length
+        valid = value.length <= @max_length
         if @regex
             @regex.lastIndex = 0
             valid = valid and @regex.test value
