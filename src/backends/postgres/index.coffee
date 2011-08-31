@@ -21,10 +21,10 @@ PGWrapper::execute = (sql, values, mode, model, ready)->
 
     pg.connect @config, (err, client)->
       client.query sql, values, (err, data)->
-          if mode in [SELECT, INSERT]
-              ready err, if not err then data.rows else null
-          else
-              ready err, data
+        if mode in [SELECT, INSERT]
+            ready err, if not err then data.rows else null
+        else
+            ready err, data
 
 PGWrapper::close = (ready)->
     #@client.end()

@@ -1,12 +1,15 @@
 {
     "name": "ormnomnom",
-    "version":"0.0.3",
+    "version":"0.0.5",
     "description": "Another ORM for Node, supporting sqlite and postgres",
     "keywords": [ 
         "node-pg",
         "sqlite",
         "orm"
     ],
+    "dependencies" : {
+        "coffee-script" : "X.X.X"
+    },
     "author":"Chris Dickinson",
     "directories":{"lib":"./lib"},
     "license": [
