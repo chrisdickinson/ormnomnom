@@ -3,23 +3,16 @@
 {BASE_FIELDS} = require './fields'
 {comparisons} = require './comparisons'
 
-try
-    pg = require 'pg'
-catch err
-    try
-        pg = require 'pg/lib'
-    catch err
-        throw new Error '``pg`` must be installed to use the postgres backend.'
-
-PGWrapper = (config)->
+PGWrapper = (pg, config)->
     @config = config
+    @pg = pg
     @
 
 PGWrapper::execute = (sql, values, mode, model, ready)->
     if mode is INSERT
         sql += ' RETURNING *'
 
-    pg.connect @config, (err, client)->
+    @pg.connect @config, (err, client)->
       client.query sql, values, (err, data)->
         if mode in [UPDATE, DELETE]
             ready err, data
@@ -63,6 +56,6 @@ PGConnection::get_client =(ready)->
         host: @metadata.host or 'localhost'
         port: @metadata.port or 5432
 
-    ready new PGWrapper config
+    ready new PGWrapper @metadata.library, config
 
 exports.Connection = PGConnection

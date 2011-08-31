@@ -3,15 +3,8 @@
 {BASE_FIELDS, DBField} = require './fields'
 {comparisons} = require './comparisons'
 
-try
-    sqlite3 = require 'sqlite3'
-catch err
-    try
-        sqlite3 = require 'sqlite3/lib'
-    catch err
-        throw new Error '``sqlite3`` must be installed to use the sqlite3 backend.'
-
-SQLiteWrapper = (client)->
+SQLiteWrapper = (sqlite, client)->
+    @sqlite = sqlite
     @client = client
     @
 
@@ -65,9 +58,10 @@ SQLiteConnection::get_client =(ready)->
     config =
         database: @metadata.name
 
-    db = new sqlite3.Database config.database, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err)->
+    sqlite = @metadata.library
+    db = new sqlite.Database config.database, sqlite.OPEN_READWRITE | sqlite.OPEN_CREATE, (err)->
         if err then throw err
-        ready new SQLiteWrapper db
+        ready new SQLiteWrapper sqlite, db
 
 SQLiteConnection::db_field_type =-> DBField
 
