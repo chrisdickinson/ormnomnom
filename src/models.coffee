@@ -35,6 +35,9 @@ BaseModel = (name, model_fn)->
     @constructor = model_fn
     @
 
+BaseModel::toString = ->
+    "<#{@constructor._meta.name}: #{@__ident__ and @[@__ident__] or @pk}>"
+
 BaseModel.lock = (model_fn)->
     if model_fn.__locked__
       return
