@@ -44,7 +44,7 @@ QCons::compile =->
         its_a_valid = (field)=>
             if field.primary_key
                 return @payload[field.name] or @payload['pk']
-            return field.db_field and @payload[field.name]
+            return field.db_field and @payload[field.name] isnt undefined
 
         fields = (@queryset.connection.quote field.db_field() for field in @keys when its_a_valid field)
         """
@@ -110,7 +110,7 @@ QCons::add_payload = (payload)->
                 if field.db_field() and field not in @keys
                     if field.primary_key
                         field
-                    else if field.default
+                    else if field.default isnt undefined
                         if field.default instanceof Function
                             ret = field.default (val)=>
                                 @values.push val
