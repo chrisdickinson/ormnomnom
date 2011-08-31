@@ -194,7 +194,7 @@ QuerySet::order_by = (ordering...)->
 
     @order_by = ordering
 
-QuerySet::limit = (from, to)->
+QuerySet::slice = QuerySet::limit = (from, to)->
     [from, to] = if to isnt undefined then [from, to] else [0, from]
     @_limit =
         from:from
