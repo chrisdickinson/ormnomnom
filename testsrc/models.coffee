@@ -55,8 +55,8 @@ module.exports = exports =
         (assert)->
             '''Test BaseModel.compile adds a primary key named `id` and aliases it if model_fn does not
             already have a primary key.'''
-            {Schema, Meta} = require '../lib/schema'
-            {AutoField} = require '../lib/fields'
+            {Schema, Meta} = require '../src/schema'
+            {AutoField} = require '../src/fields'
             model = -> lol?
             schema = new Schema model
             schema.connect_related = assert.async -> assert.ok 'just testing that this gets triggered'
@@ -74,8 +74,8 @@ module.exports = exports =
 
         (assert)->
             '''Test BaseModel.compile will not add a primary key if schema says that it already has one.'''
-            {Schema, Meta} = require '../lib/schema'
-            {AutoField} = require '../lib/fields'
+            {Schema, Meta} = require '../src/schema'
+            {AutoField} = require '../src/fields'
             model = -> noop?
             schema = new Schema model
             schema.connect_related = assert.async -> assert.ok 'just testing that this gets triggered'
@@ -92,7 +92,7 @@ module.exports = exports =
 
         (assert)->
             '''Test BaseModel.create_manager automatically creates an instance of Manager passing `model_fn`'''
-            {Manager} = require '../lib/managers'
+            {Manager} = require '../src/managers'
             model_fn = -> noop?
 
             BaseModel.create_manager model_fn
@@ -103,7 +103,7 @@ module.exports = exports =
 
         (assert)->
             '''Test BaseModel.create_manager will use user-provided managers'''
-            {Manager} = require '../lib/managers'
+            {Manager} = require '../src/managers'
             FakeManager = (model_fn) -> assert.isInstance @, FakeManager
             model_fn = -> noop?
             model_fn.objects = FakeManager
@@ -118,7 +118,7 @@ module.exports = exports =
 
         (assert)->
             '''Test BaseModel#assign throws errors when given values not present in schema'''
-            {Meta, Schema} = require '../lib/schema'
+            {Meta, Schema} = require '../src/schema'
             MockModel = -> noop?
             MockModel._schema = new Schema MockModel
             MockModel._meta = new Meta MockModel
@@ -129,7 +129,7 @@ module.exports = exports =
 
         (assert)->
             '''Test BaseModel#assign delegates to Field#apply_value.'''
-            {Schema} = require '../lib/schema'
+            {Schema} = require '../src/schema'
             expected_field_name = "random_#{~~(100*Math.random())}"
             MockModel = -> noop?
             MockModel._schema = new Schema

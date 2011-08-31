@@ -5,9 +5,9 @@ platoon = require 'platoon'
 testing_backend = process.env.TESTING_BACKEND || 'postgres'
 
 models.configure 'default', {
-        sqlite:{backend:'ormnomnom/lib/backends/sqlite', name:'test_ormnomnom.db'}
-        mysql:{backend:'ormnomnom/lib/backends/mysql', name:'test_ormnomnom'}
-        postgres:{backend:'ormnomnom/lib/backends/postgres', name:'test_ormnomnom'}
+        sqlite:{backend:'ormnomnom/src/backends/sqlite', name:'test_ormnomnom.db'}
+        mysql:{backend:'ormnomnom/src/backends/mysql', name:'test_ormnomnom'}
+        postgres:{backend:'ormnomnom/src/backends/postgres', name:'test_ormnomnom'}
     }[testing_backend]
 
 export_module = (module_name)->
