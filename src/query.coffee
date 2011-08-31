@@ -68,7 +68,7 @@ QuerySet = EventEmitter.subclass (model)->
     @query = null
     @payload = null
     @_limit = null
-    @order_by = @model._meta.order_by or null
+    @_order_by = @model._meta.order_by or null
     @_create = @_delete = no
     @_errored = null
     @_fields = null
@@ -99,8 +99,8 @@ QuerySet::execute =->
         if @query
             qcons.set_where @query.compile qcons
 
-        if @order_by
-            @order_by.forEach (field_name)->
+        if @_order_by
+            @_order_by.forEach (field_name)->
                 qcons.add_ordering field_name
 
         sql = qcons.compile()
@@ -192,7 +192,7 @@ QuerySet::order_by = (ordering...)->
             val = val.slice 1
         @model._schema.validate val
 
-    @order_by = ordering
+    @_order_by = ordering
 
 QuerySet::slice = QuerySet::limit = (from, to)->
     [from, to] = if to isnt undefined then [from, to] else [0, from]
