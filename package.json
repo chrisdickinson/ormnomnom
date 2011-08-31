@@ -1,6 +1,6 @@
 {
     "name": "ormnomnom",
-    "version":"0.0.5",
+    "version":"0.0.6",
     "description": "Another ORM for Node, supporting sqlite and postgres",
     "keywords": [ 
         "node-pg",
@@ -15,5 +15,5 @@
     "license": [
         "New BSD License"
     ],
-    "main":"./lib/index"
+    "main":"./index"
 }
