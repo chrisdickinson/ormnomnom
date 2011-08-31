@@ -188,17 +188,23 @@ ForeignKey::connect =->
     local_mgr = new Manager @related
     [model, field_name, db_field, to_field] = [@model, @name, @db_field, @to_field]
 
-    @model::[@name] = ()->
-        if @_fk_cache[field_name]
-            if @_fk_cache[field_name].instance
-                instance = @_fk_cache[field_name].instance
-                ee = new EventEmitter
-                setTimeout (-> ee.emit 'data', instance), 0
-                return ee
-            else if @_fk_cache[field_name].id
-                filter = {}
-                filter[to_field] = @_fk_cache[field_name].id
-                return local_mgr.get filter
+    Object.defineProperty @model.prototype, @name, {
+        get:->
+            if @_fk_cache[field_name]
+                if @_fk_cache[field_name].instance
+                    instance = @_fk_cache[field_name].instance
+                    ee = new EventEmitter
+                    setTimeout (-> ee.emit 'data', instance), 0
+                    return ee
+                else if @_fk_cache[field_name].id
+                    filter = {}
+                    filter[to_field] = @_fk_cache[field_name].id
+                    return local_mgr.get filter
+        set:(val)->
+            if val and val.pk
+                @_fk_cache[field_name] = @_fk_cache[field_name] or {}
+                @_fk_cache[field_name].id = val.pk
+    }
 
     mgr = new Manager @model
     mgr.start_query = ->

@@ -1,5 +1,10 @@
 {unittest, test, models, exceptions} = require './_utils'
 
+random_name = {
+    toString:->
+        ''+~~(Math.random()*100)
+}
+
 module.exports = exports =
     'test autofield pk':unittest(
         models.namespace 'custom_pk', (ns)->
@@ -28,6 +33,89 @@ module.exports = exports =
                     assert.fail err
                     assert.ok instance
                     assert.equal instance.handle, data.handle
+    )
+
+    'test pass instance.fk into queryset':unittest(
+        models.namespace 'fk_into_qs', (ns)->
+            Parent = ns.create 'Parent'
+            Child = ns.create 'Child'
+            Nephew = ns.create 'Nephew'
+
+            Parent.schema
+                value:models.CharField
+
+            Child.schema
+                parent:models.ForeignKey Parent
+
+            Nephew.schema
+                uncle:models.ForeignKey Parent
+                name:models.CharField
+
+        test "Test that you can pass child.parent() into Nephew.objects.create", (ns, assert)->
+            parent_name = 'create_parent_'+random_name
+            nephew_name = 'create_nephew_'+nephew_name
+            {Parent, Child, Nephew} = ns.models
+            Parent.objects.create({value:parent_name}) assert.async (err, parent)->
+                assert.fail err
+                Child.objects.create({parent:parent}) assert.async (err, child)->
+                    assert.fail err
+                    Nephew.objects.create({uncle:child.parent(), name:nephew_name}) assert.async (err, nephew)->
+                        assert.fail err
+                        assert.equal nephew.name, nephew_name
+                        nephew.uncle() assert.async (err, data)->
+                            assert.equal data.name, parent.name
+
+        test "Test that you can pass child.parent into Nephew.objects.create (sans parens)", (ns, assert)->
+            parent_name = 'create_parent_'+random_name
+            nephew_name = 'create_nephew_'+nephew_name
+            {Parent, Child, Nephew} = ns.models
+            Parent.objects.create({value:parent_name}) assert.async (err, parent)->
+                assert.fail err
+                Child.objects.create({parent:parent}) assert.async (err, child)->
+                    assert.fail err
+                    Nephew.objects.create({uncle:child.parent, name:nephew_name}) assert.async (err, nephew)->
+                        assert.fail err
+                        assert.equal nephew.name, nephew_name
+                        nephew.uncle assert.async (err, data)->
+                            assert.equal data.name, parent.name
+
+        test "Test that you can pass child.parent() into Nephew.objects.filter", (ns, assert)->
+            parent_name = 'filter_parent_'+random_name
+            nephew_name = 'filter_nephew_'+nephew_name
+            {Parent, Child, Nephew} = ns.models
+            Parent.objects.create({value:parent_name}) assert.async (err, parent)->
+                assert.fail err
+                Child.objects.create({parent:parent}) assert.async (err, child)->
+                    assert.fail err
+                    Nephew.objects.create({uncle:child.parent(), name:nephew_name}) assert.async (err, nephew)->
+                        assert.fail err
+                        assert.equal nephew.name, nephew_name
+                        nephew.uncle() assert.async (err, data)->
+                            assert.equal data.name, parent.name
+
+                            Nephew.objects.filter({uncle:child.parent()}) assert.async (err, nephews)->
+                                assert.fail err
+                                assert.equal nephews.length, 1
+                                assert.equal nephews[0].pk, nephew.pk
+
+        test "Test that you can pass child.parent into Nephew.objects.filter (sans parens)", (ns, assert)->
+            parent_name = 'filter_parent_'+random_name
+            nephew_name = 'filter_nephew_'+nephew_name
+            {Parent, Child, Nephew} = ns.models
+            Parent.objects.create({value:parent_name}) assert.async (err, parent)->
+                assert.fail err
+                Child.objects.create({parent:parent}) assert.async (err, child)->
+                    assert.fail err
+                    Nephew.objects.create({uncle:child.parent, name:nephew_name}) assert.async (err, nephew)->
+                        assert.fail err
+                        assert.equal nephew.name, nephew_name
+                        nephew.uncle assert.async (err, data)->
+                            assert.equal data.name, parent.name
+
+                            Nephew.objects.filter({uncle:child.parent}) assert.async (err, nephews)->
+                                assert.fail err
+                                assert.equal nephews.length, 1
+                                assert.equal nephews[0].pk, nephew.pk
     )
 
     'test empty string into charfield interactions':unittest(

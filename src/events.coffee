@@ -8,12 +8,15 @@ EventEmitter = (args...) ->
     _cache_data = _cache_err = null
 
     ret = (ready)->
-        if not _cache_data and not _cache_err
-            ret.on 'data', (data)->ready(null, data)
-            ret.on 'error', (err)->ready(err, null)
+        if ready
+            if not _cache_data and not _cache_err
+                ret.on 'data', (data)->ready(null, data)
+                ret.on 'error', (err)->ready(err, null)
+            else
+                ready _cache_err, _cache_data
+            undefined
         else
-            ready _cache_err, _cache_data
-        undefined
+            ret
 
     EE.apply ret, args
 
