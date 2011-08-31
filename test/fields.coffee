@@ -30,6 +30,134 @@ module.exports = exports =
                     assert.equal instance.handle, data.handle
     )
 
+    'test empty string into charfield interactions':unittest(
+        models.namespace 'empty_string', (ns)->
+            Nullable = ns.create 'Nullable'
+            Nullable.schema
+                value:models.CharField {nullable:true}
+
+            Default = ns.create 'Default'
+            Default.schema
+                value:models.CharField {default:''}
+
+            DefaultValue = ns.create 'DefaultValue'
+            DefaultValue.schema
+                value:models.CharField {default:'hello world'}
+
+            DefaultNullable = ns.create 'DefaultNullable'
+            DefaultNullable.schema
+                value:models.CharField {default:'', nullable:yes}
+
+        test 'test plain nullable bare create', (ns, assert)->
+            ns.models.Nullable.objects.create({}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.strictEqual data.value, null
+
+        test 'test plain nullable null create', (ns, assert)->
+            ns.models.Nullable.objects.create({value:null}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.strictEqual data.value, null
+
+        test 'test plain nullable value create', (ns, assert)->
+            expected = 'barf'
+            ns.models.Nullable.objects.create({value:expected}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.strictEqual data.value, expected 
+
+        test 'test plain default bare create', (ns, assert)->
+            ns.models.Default.objects.create({}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.strictEqual data.value, ''
+
+        test 'test plain default null create', (ns, assert)->
+            ns.models.Default.objects.create({value:null}) assert.async (err, data)->
+                assert.ok err
+                assert.fail data
+
+        test 'test value default null create', (ns, assert)->
+            ns.models.DefaultValue.objects.create({value:null}) assert.async (err, data)->
+                assert.ok err
+                assert.fail data
+
+        test 'test value default empty create', (ns, assert)->
+            ns.models.DefaultValue.objects.create({value:''}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.strictEqual data.value, ''
+
+        test 'test value default bare create', (ns, assert)->
+            ns.models.DefaultValue.objects.create({}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.strictEqual data.value, 'hello world'
+
+        test 'test plain default value create', (ns, assert)->
+            expected = 'barf'
+            ns.models.Default.objects.create({value:expected}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.strictEqual data.value, expected
+
+        test 'test default empty nullable empty create', (ns, assert)->
+            ns.models.DefaultNullable.objects.create({}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.strictEqual data.value, ''
+
+        test 'test default empty nullable null create', (ns, assert)->
+            ns.models.DefaultNullable.objects.create({value:null}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.strictEqual data.value, null
+    )
+
+    'test integer default':unittest(
+        models.namespace 'integer_default', (ns)->
+            Model = ns.create 'Model'
+            Model.schema
+                name:models.CharField
+                value:models.IntegerField {default:0}
+
+            Model2 = ns.create 'Model2'
+            Model2.schema 
+                name:models.CharField
+                value:models.IntegerField {default:1}
+
+            Model3 = ns.create 'Model3'
+            Model3.schema
+                name:models.CharField
+                value:models.IntegerField {default:->0}
+
+        test "Test that creation of a model with a bare, 0 default works.", (ns, assert)->
+            expected = 'arfarf'
+            ns.models.Model.objects.create({name:expected}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.equal data.name, expected
+                assert.equal data.value, 0
+
+        test "Test that creation of a model with a bare, 1 default works.", (ns, assert)->
+            expected = 'arfarf'
+            ns.models.Model2.objects.create({name:expected}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.equal data.name, expected
+                assert.equal data.value, 1
+
+        test "Test that creation of a model with a callable 0 default works.", (ns, assert)->
+            expected = 'arfarf'
+            ns.models.Model3.objects.create({name:expected}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.equal data.name, expected
+                assert.equal data.value, 0
+
+    )
+
     'test non-integer pk':unittest(
         models.namespace 'custom_nonint_pk', (ns)->
             Model = ns.create 'Model'
