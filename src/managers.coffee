@@ -11,28 +11,52 @@ Manager::get_base_payload = ->
 Manager::start_query =->
     new QuerySet @model
 
-Manager::filter = (kwargs)->
+Manager::filter = (kwargs, ready)->
     q = @start_query()
-    q.filter kwargs
+    result = q.filter kwargs
+    if ready
+        result ready
+        return undefined
+    result
 
-Manager::all =->
-    @start_query()
+Manager::all =(ready)->
+    result = @start_query()
+    if ready
+        result ready
+        return undefined
+    result
 
-Manager::create = (kwargs)->
+Manager::create = (kwargs, ready)->
     q = @start_query()
     base = @get_base_payload() or {}
     for key, val of kwargs
         base[key] = val
 
-    q.create base
+    result = q.create base
 
-Manager::delete =->
-    @start_query().delete()
+    if ready
+        result ready
+        return undefined
+    result
 
-Manager::update = (kwargs)->
-    @start_query().update(kwargs)
+Manager::delete =(ready)->
+    result = @start_query().delete()
 
-Manager::get = (kwargs)->
+    if ready
+        result ready
+        return undefined
+    result
+
+Manager::update = (kwargs, ready)->
+    result = @start_query().update(kwargs)
+
+    if ready
+        result ready
+        return undefined
+    result
+
+
+Manager::get = (kwargs, ready)->
     ee = new EventEmitter
     # try to grab two: if more than one exists then things are wrong. 
     base = @filter(kwargs).limit(2)
@@ -46,9 +70,13 @@ Manager::get = (kwargs)->
             ee.emit 'data', data[0]
 
     base.on 'error', (err)->ee.emit 'error', err
+
+    if ready
+        ee ready
+        return undefined
     ee
 
-Manager::get_or_create =(kwargs)->
+Manager::get_or_create =(kwargs, ready)->
     ee = new EventEmitter
     base = @get kwargs
 
@@ -64,6 +92,10 @@ Manager::get_or_create =(kwargs)->
                 ee.emit 'error', err
         else
             ee.emit 'error', err
+
+    if ready
+        ee ready
+        return undefined
     ee
 
 exports.Manager = Manager
