@@ -70,6 +70,16 @@ Schema::validate =(kwargs, strict=no)->
             throw new SchemaError "#{field_name} is not a field on #{@model._meta.name}"
     yes
 
+Schema::validate_field = (field_name)->
+    field_name = field_name.split '__'
+    current = @model
+    field_name.forEach (name)->
+        instance = current._schema.get_field_by_name name
+        if not instance
+            throw new SchemaError "#{name} is not a field on #{current._meta.name} (from #{field_name.join '__'})"
+        current = instance.related
+    yes
+
 Meta = (name, model)->
     @model = model
     @name = name

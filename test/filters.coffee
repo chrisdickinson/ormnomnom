@@ -491,4 +491,26 @@ module.exports = exports =
                             assert.ok children
                             assert.equal children[0].name, child_name_2
                             assert.equal children[1].name, child_name_1
+        test 'Test that order_by can be passed to queryset to change ordering', (ns, assert)->
+            {Simple, Complex} = ns.models
+            name = 'simple_'+random_name
+            child_name_1 = 'aardvark_'+random_name
+            child_name_2 = 'zed_'+random_name
+            Complex.objects.delete() assert.async (err)->
+                Simple.objects.create({name:name}) assert.async (err, parent)->
+                    assert.fail err
+                    assert.ok parent
+                    [   parent.complex_set.create({name:child_name_2})
+                    ,   parent.complex_set.create({name:child_name_1})].collect assert.async (err, data)->
+                        assert.fail err.filter((i)->i isnt null).length
+                        assert.ok data.length
+                    Complex.objects.all().order_by('name') assert.async (err, data)->
+                        assert.fail err
+                        assert.ok data
+                        assert.equal data.length, 2
+                        assert.equal data[0].name, child_name_1
+                        assert.equal data[1].name, child_name_2
+
+
+
     )

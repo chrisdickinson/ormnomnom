@@ -187,12 +187,13 @@ QuerySet::exclude = (kwargs)->
     @
 
 QuerySet::order_by = (ordering...)->
-    ordering.forEach (val)->
+    ordering.forEach (val)=>
         if '-' is val.charAt 0
             val = val.slice 1
-        @model._schema.validate val
+        @model._schema.validate_field val
 
     @_order_by = ordering
+    @
 
 QuerySet::slice = QuerySet::limit = (from, to)->
     [from, to] = if to isnt undefined then [from, to] else [0, from]
