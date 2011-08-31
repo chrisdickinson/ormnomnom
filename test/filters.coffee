@@ -2,6 +2,11 @@
 {Related, Many} = require './fixtures/related'
 {models, exceptions, unittest, unit, test} = require './_utils'
 
+random_name = {
+    toString:->
+        ''+~~(Math.random()*100)
+}
+
 module.exports = exports =
     'test basic api':unit(
         {}
@@ -419,4 +424,71 @@ module.exports = exports =
                         creation = {some_random_value:'okay'}
                     Countable.objects.create(creation) assert.async recurse
             recurse()
+    )
+    'test of order by':unittest(
+        models.namespace 'order_by', (ns)->
+            Simple = ns.create 'Simple'
+            Complex = ns.create 'Complex'
+            Through = ns.create 'Through'
+
+            Simple.schema
+                name:models.CharField
+                m2m:models.ManyToMany Complex, {through:Through, related_name:'m2m_simple'}
+
+            Through.schema
+                simple:models.ForeignKey Simple
+                complex:models.ForeignKey Complex
+
+            Complex.schema
+                name:models.CharField
+                friend:models.ForeignKey Simple
+
+            Complex.meta
+                order_by:['-name']
+
+            Complex::__ident__ = 'name'
+
+
+        test "Test that reverse fk queries respect child model order_by", (ns, assert)->
+            {Simple, Complex} = ns.models
+            name = 'simple_'+random_name
+            child_name_1 = 'aardvark_'+random_name
+            child_name_2 = 'zed_'+random_name
+            Simple.objects.create({name:name}) assert.async (err, parent)->
+                assert.fail err
+                assert.ok parent
+                [   parent.complex_set.create({name:child_name_2})
+                ,   parent.complex_set.create({name:child_name_1})].collect assert.async (err, data)->
+                    assert.fail err.filter((i)->i isnt null).length
+                    assert.ok data.length
+
+                    parent.complex_set.all() assert.async (err, children)->
+                        assert.fail err
+                        assert.ok children
+                        assert.equal children[0].name, child_name_2
+                        assert.equal children[1].name, child_name_1
+
+        test "Test that m2m queries respect child model order_by", (ns, assert)->
+            {Simple, Complex} = ns.models
+            name = 'simple_'+random_name
+            child_name_1 = 'aardvark_'+random_name
+            child_name_2 = 'zed_'+random_name
+            Simple.objects.create({name:name}) assert.async (err, parent)->
+                assert.fail err
+                assert.ok parent
+                [   parent.complex_set.create({name:child_name_2})
+                ,   parent.complex_set.create({name:child_name_1})].collect assert.async (err, data)->
+                    assert.fail err.filter((i)->i isnt null).length
+                    assert.ok data.length
+
+                    [   parent.m2m.add(data[0])
+                    ,   parent.m2m.add(data[1])].collect assert.async (err, data)->
+                        assert.fail err.filter((i)->i isnt null).length
+                        assert.ok data.length
+
+                        parent.m2m.all() assert.async (err, children)->
+                            assert.fail err
+                            assert.ok children
+                            assert.equal children[0].name, child_name_2
+                            assert.equal children[1].name, child_name_1
     )
