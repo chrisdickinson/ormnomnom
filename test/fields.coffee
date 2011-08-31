@@ -136,6 +136,21 @@ module.exports = exports =
             DefaultNullable.schema
                 value:models.CharField {default:'', nullable:yes}
 
+            Normal = ns.create 'Normal'
+            Normal.schema
+                value:models.CharField
+
+        test 'test normal empty string passing stores empty string', (ns, assert)->
+            ns.models.Normal.objects.create({value:''}) assert.async (err, data)->
+                assert.fail err
+                assert.ok data
+                assert.strictEqual data.value, ''
+
+        test 'test normal bare create returns error', (ns, assert)->
+            ns.models.Normal.objects.create({}) assert.async (err, data)->
+                assert.ok err
+                assert.fail data
+
         test 'test plain nullable bare create', (ns, assert)->
             ns.models.Nullable.objects.create({}) assert.async (err, data)->
                 assert.fail err
