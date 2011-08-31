@@ -504,12 +504,13 @@ module.exports = exports =
                     ,   parent.complex_set.create({name:child_name_1})].collect assert.async (err, data)->
                         assert.fail err.filter((i)->i isnt null).length
                         assert.ok data.length
-                    Complex.objects.all().order_by('name') assert.async (err, data)->
-                        assert.fail err
-                        assert.ok data
-                        assert.equal data.length, 2
-                        assert.equal data[0].name, child_name_1
-                        assert.equal data[1].name, child_name_2
+                        Complex.objects.all().order_by('name') assert.async (err, data)->
+                            assert.fail err
+                            assert.ok data
+
+                            assert.equal data.length, 2
+                            assert.equal data[0].name, child_name_1
+                            assert.equal data[1].name, child_name_2
 
 
 
