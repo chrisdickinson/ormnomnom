@@ -4,3 +4,5 @@ module.exports = exports =
   backends: require './backends'
   constants: require './constants'
   exceptions: require './exceptions'
+  sql:(sql, values, ready)->
+    require('./connection').sql sql, values, ready

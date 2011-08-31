@@ -1,4 +1,4 @@
-{EventEmitter} = require 'events'
+{EventEmitter} = require './events'
 
 Connection = ()->
     @
@@ -49,6 +49,24 @@ Connection::execute = (sql, values, mode, model)->
             if err then ee.emit('error', err) else ee.emit('data', data)
     ee
 
+Connection::sql = (sql, values, ready)->
+    ee = new EventEmitter
+    values = values or []
+
+    @client =>
+        @_client.execute sql, values, {}, {}, (err, data)->
+            if err
+                err.__sql = sql
+                err.__values = values
+                ee.emit 'error', err
+            else
+                ee.emit 'data', data
+            if ready
+                ready err, data
+    if ready
+        return undefined
+    ee
+
 Connection::drop_table = (model)->
     "DROP TABLE #{@quote model._meta.db_table}"
 
@@ -68,4 +86,10 @@ Connection::db_field_type = ->
     {DBField} = require './backends/fields'
     DBField
 
+module.exports = exports = (which)->
+    Connection.get_connection which
+
 exports.Connection = Connection
+exports.sql = (sql, values, ready)->
+    connection = Connection.get_connection 'default'
+    connection.sql sql, values, ready
