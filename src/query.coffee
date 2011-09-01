@@ -150,15 +150,15 @@ QuerySet::_select_query = (kwargs)->
 
             leaf = new QueryLeaf fields, val, cmp
 
-            if val and val.on
-                ++@_ready_count
-                val.on 'data', (data)=>
-                    --@_ready_count
-                    leaf.value = data
-
-                val.on 'error', (err)=>
-                    --@_ready_count
-                    @_errored = err
+            if typeof val is 'function'
+                do (leaf)=>
+                    ++@_ready_count
+                    val (err, data)=>
+                        --@_ready_count
+                        if err
+                            @_errored = err
+                        else
+                            leaf.value = data
 
             children.push leaf
         return query = new Query(AND, children)
