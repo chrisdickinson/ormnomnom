@@ -92,14 +92,15 @@ QuerySet::execute =->
         else if @_delete
             qcons.set_mode DELETE
 
-        qcons.set_fields @_fields or @model._schema.real_fields()
-
+        fields = @_fields or @model._schema.real_fields()
+        qcons.set_fields fields
         qcons.set_limit @_limit
 
         if @query
             qcons.set_where @query.compile qcons
 
-        if @_order_by
+        disable_order_by = (field for field in fields when field.disable_order_by()).length > 0
+        if @_order_by and not disable_order_by
             @_order_by.forEach (field_name)->
                 qcons.add_ordering field_name
 
@@ -128,7 +129,7 @@ QuerySet::using = (name)->
     @
 
 QuerySet::count = QuerySet::length = (ready)->
-    {Count} = require './fields'
+    {Count}= require './fields'
     @_fields = [new Count 'count']
 
     ee = new EventEmitter

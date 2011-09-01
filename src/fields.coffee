@@ -4,6 +4,8 @@ Field = (kwargs)->
     {@required,@default,@primary_key,@db_index,@nullable} = kwargs
     @
 
+Field::disable_order_by = -> no
+
 Field::get_prepdb_value = (value)->
     value
 
@@ -330,6 +332,7 @@ Count = (alias)->
     @
 
 Count:: = new PositiveIntegerField {}
+Count::disable_order_by = -> yes
 Count::is_decoration = yes
 Count::db_repr = (connection)->
     "COUNT(*) as #{connection.quote @alias}"
