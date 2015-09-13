@@ -1,19 +1,26 @@
 {
-    "name": "ormnomnom",
-    "version":"0.0.8",
-    "description": "Another ORM for Node, supporting sqlite and postgres",
-    "keywords": [ 
-        "node-pg",
-        "sqlite",
-        "orm"
-    ],
-    "dependencies" : {
-        "coffee-script" : "X.X.X"
-    },
-    "author":"Chris Dickinson",
-    "directories":{"lib":"./lib"},
-    "license": [
-        "New BSD License"
-    ],
-    "main":"./index"
+  "name": "ormnomnom",
+  "version": "1.0.0",
+  "description": "a lightweight orm to silence the orm-y beast",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/chrisdickinson/ormnomnom.git"
+  },
+  "keywords": [
+    "orm"
+  ],
+  "author": "Chris Dickinson <chris@neversaw.us> (http://neversaw.us/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chrisdickinson/ormnomnom/issues"
+  },
+  "homepage": "https://github.com/chrisdickinson/ormnomnom#readme",
+  "dependencies": {
+    "boom": "^2.8.0",
+    "joi": "^6.6.1"
+  }
 }
