@@ -31,6 +31,29 @@ function Usage (data) {
   util._extend(this, data)
 }
 
+UsageObjects.create({
+  name: 'ok, some usage',
+  package: PackageObjects.create({
+    name: 'ok, a package'
+  })
+}).then(function (usage) {
+  console.log(usage)
+  /*
+    Usage {
+      id: 121
+      name: 'ok, some usage',
+      package_id: 20101,
+      package: Package {
+        id: 20101,
+        name: 'ok, a package'
+        created: date,
+        updated: date,
+        deleted: null
+      },
+    }
+  */
+})
+
 ```
 
 ## API
