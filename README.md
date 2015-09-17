@@ -53,16 +53,21 @@ results.
 
 DAOs provide the following querying methods:
 
-* [`all`](#queryset-all)
-* [`get`](#queryset-get)
-* [`filter`](#queryset-filter)
-* [`create`](#queryset-create)
-* [`update`](#queryset-update)
-* [`delete`](#queryset-delete)
+* [`all`](#querysetall)
+* [`get`](#querysetget)
+* [`filter`](#querysetfilter)
+* [`create`](#querysetcreate)
+* [`update`](#querysetupdate)
+* [`delete`](#querysetdelete)
 
 **In addition**, the ormnomnom function provides a method, `setConnection`, which
 accepts a function that is expected to return a Postgres connection object as a
 promise.
+
+Finally, all foreign keys will add a reverse relation to the DAO — if, say, a
+Package**DAO** had a foreign key to User, User**DAO** will have a method called
+`packageSetFor(<User>) → Promise<Package>`, allowing users to quickly query
+associated one-to-many relations from the perspective of the one.
 
 ### QuerySets
 
