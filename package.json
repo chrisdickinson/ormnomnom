@@ -2,7 +2,7 @@
   "name": "ormnomnom",
   "version": "1.0.0",
   "description": "a lightweight orm to silence the orm-y beast",
-  "main": "index.js",
+  "main": "lib/ormnomnom.js",
   "scripts": {
     "test": "tape test/"
   },
