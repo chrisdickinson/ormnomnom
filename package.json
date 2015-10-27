@@ -4,7 +4,7 @@
   "description": "a lightweight orm to silence the orm-y beast",
   "main": "lib/ormnomnom.js",
   "scripts": {
-    "test": "tape test/"
+    "test": "nyc tape test/*-test.js"
   },
   "repository": {
     "type": "git",
@@ -28,5 +28,10 @@
     "pg": "^4.4.1",
     "pg-query-stream": "^0.7.0",
     "quotemeta": "0.0.0"
+  },
+  "devDependencies": {
+    "nyc": "^3.2.2",
+    "pg": "^4.4.3",
+    "tape": "^4.2.2"
   }
 }
