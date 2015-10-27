@@ -458,6 +458,8 @@ tape('test get fails on multiple objects returned', function (assert) {
   })
   NodeObjects.get({'name:contains': 'busey'}).catch(err => {
     assert.equal(err.constructor, NodeObjects.MultipleObjectsReturned)
+    assert.equal(err.message, 'Multiple Node objects returned')
+    assert.ok(err instanceof ormnomnom.MultipleObjectsReturned)
   })
   .return(null)
   .then(assert.end)
@@ -479,6 +481,8 @@ tape('test get fails on zero objects returned', function (assert) {
   })
   NodeObjects.get({'name': 'ford prefect'}).catch(err => {
     assert.equal(err.constructor, NodeObjects.NotFound)
+    assert.equal(err.message, 'Node not found')
+    assert.ok(err instanceof ormnomnom.NotFound)
   })
   .return(null)
   .then(assert.end)
