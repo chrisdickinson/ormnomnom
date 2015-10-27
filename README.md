@@ -7,9 +7,11 @@ can agree that some things should remain daydreams.
 *Caution*: This library exposes bluebird promises to calling modules.
 
 ```javascript
+const ormnomnom = require('ormnomnom')
+const joi = ormnomnom.joi // comes with joi.
 
 const PackageObjects = ormnomnom(Package, {
-  id: joi.number().required(),
+  id: joi.number().integer(),
   name: joi.string().required(),
   created: joi.date(),
   updated: joi.date(),
@@ -17,8 +19,8 @@ const PackageObjects = ormnomnom(Package, {
 })
 
 const UsageObjects = ormnomnom(Usage, {
-  id: true,           // we can also be suuu-uuuper inspecific
-  name: true,
+  id: joi.number().integer(),
+  name: joi.string().required(),
   package: Package    // we can reference other tables by referring to their
                       // associated functions
 })
@@ -102,14 +104,38 @@ and to consume a promise when returning a finite number of rows.
 
 #### `QuerySet#all()`
 
-Return a queryset representing all rows of the backing table.
+Return a queryset representing all rows of the backing table. Creating an
+empty queryset can be useful in situations where one iteratively builds up
+a query by passing the queryset between several APIs.
 
-#### `QuerySet#get()`
+**Example:**
+
+```javascript
+const onlyTheBest = require('./only-the-best-filter')
+const onlyConsonants = require('./only-consonants')
+
+// get the best consonant letters
+var myLetters = LetterObjects.all()
+myLetters = onlyTheBest(onlyConsonants(myLetters))
+
+// get the best letters from the first half of the alphabet
+var firstLetters = LetterObjects.all().slice(0, 13)
+firstLetters = onlyTheBest(firstLetters)
+```
+
+#### `QuerySet#get(WhereClause)`
 
 Return a promise of a single row representation, throwing an error if zero or
 more than one rows are represented in the result.
 
-#### `QuerySet#filter()`
+#### `QuerySet#filter(WhereClause)`
+
+Return a new queryset representing a set of rows where `WhereClause` is true,
+in addition to all previously added `WhereClause`'s. See [`WhereClause`](#whereclause)
+for more info on the operations available in a where clause.
+
+
+
 #### `QuerySet#create()`
 #### `QuerySet#update()`
 #### `QuerySet#delete()`

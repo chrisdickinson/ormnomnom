@@ -40,9 +40,9 @@ tape('test insert', function (assert) {
     }
   }
   var NodeObjects = ormnomnom(Node, {
-    id: true,
-    name: true,
-    val: true
+    id: ormnomnom.joi.number().integer(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
   })
   NodeObjects.create({
     name: 'hello world',
@@ -78,9 +78,9 @@ tape('test update (none affected)', function (assert) {
     }
   }
   var NodeObjects = ormnomnom(Node, {
-    id: true,
-    name: true,
-    val: true
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string().required(),
+    val: ormnomnom.joi.number()
   })
   NodeObjects
     .filter({'val:gt': 3})
@@ -113,9 +113,9 @@ tape('test update (one affected)', function (assert) {
     }
   }
   var NodeObjects = ormnomnom(Node, {
-    id: true,
-    name: true,
-    val: true
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
   })
   NodeObjects
     .filter({'val': 3})
@@ -148,9 +148,9 @@ tape('test delete', function (assert) {
     }
   }
   var NodeObjects = ormnomnom(Node, {
-    id: true,
-    name: true,
-    val: true
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
   })
   NodeObjects
     .delete()
@@ -186,14 +186,14 @@ tape('test nested insert', function (assert) {
     }
   }
   const RefObjects = ormnomnom(Ref, {
-    id: true,
+    id: ormnomnom.joi.number(),
     node: Node,
-    val: true
+    val: ormnomnom.joi.number()
   })
   var NodeObjects = ormnomnom(Node, {
-    id: true,
-    name: true,
-    val: true
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
   })
 
   const createRef = RefObjects.create({
