@@ -216,6 +216,275 @@ tape('test nested insert', function (assert) {
   .catch(assert.end)
 })
 
+tape('test simple select', function (assert) {
+  class Node {
+    constructor (props) {
+      this.id = props.id
+      this.name = props.name
+      this.val = props.val
+    }
+  }
+  class Ref {
+    constructor (props) {
+      this.id = props.id
+      this.node = props.node
+      this.node_id = props.node_id
+      this.val = props.val
+    }
+  }
+  const RefObjects = ormnomnom(Ref, {
+    id: ormnomnom.joi.number(),
+    node: Node,
+    val: ormnomnom.joi.number()
+  })
+  var NodeObjects = ormnomnom(Node, {
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
+  })
+
+  RefObjects.create({val: 300, node: NodeObjects.create({
+    name: 'gary busey',
+    val: -100
+  })}).then(_ => {
+    return RefObjects.filter({'node.name:startsWith': 'jake'}).then(xs => {
+      assert.equal(xs.length, 1)
+      assert.equal(xs[0].node.name, 'jake busey')
+      assert.equal(xs[0].val, 10)
+    })
+  })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
+tape('test values select', function (assert) {
+  class Node {
+    constructor (props) {
+      this.id = props.id
+      this.name = props.name
+      this.val = props.val
+    }
+  }
+  class Ref {
+    constructor (props) {
+      this.id = props.id
+      this.node = props.node
+      this.node_id = props.node_id
+      this.val = props.val
+    }
+  }
+  const RefObjects = ormnomnom(Ref, {
+    id: ormnomnom.joi.number(),
+    node: Node,
+    val: ormnomnom.joi.number()
+  })
+  var NodeObjects = ormnomnom(Node, {
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
+  })
+
+  NodeObjects
+  RefObjects.filter({'node.name:endsWith': 'busey'}).values('node_id').then(xs => {
+    assert.deepEqual(xs, [{
+      node_id: 2
+    }, {
+      node_id: 3
+    }])
+    assert.ok(!(xs[0] instanceof Ref), 'should be plain objects')
+  })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
+tape('test deep values select', function (assert) {
+  class Node {
+    constructor (props) {
+      this.id = props.id
+      this.name = props.name
+      this.val = props.val
+    }
+  }
+  class Ref {
+    constructor (props) {
+      this.id = props.id
+      this.node = props.node
+      this.node_id = props.node_id
+      this.val = props.val
+    }
+  }
+  const RefObjects = ormnomnom(Ref, {
+    id: ormnomnom.joi.number(),
+    node: Node,
+    val: ormnomnom.joi.number()
+  })
+  var NodeObjects = ormnomnom(Node, {
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
+  })
+
+  NodeObjects
+  RefObjects.filter({'node.name:endsWith': 'busey'}).values(['node.name', 'node_id']).then(xs => {
+    assert.deepEqual(xs, [{
+      node: {name: 'jake busey'},
+      node_id: 2
+    }, {
+      node: {name: 'gary busey'},
+      node_id: 3
+    }])
+    assert.ok(!(xs[0] instanceof Ref), 'should be plain objects')
+  })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
+tape('test values list', function (assert) {
+  class Node {
+    constructor (props) {
+      this.id = props.id
+      this.name = props.name
+      this.val = props.val
+    }
+  }
+  class Ref {
+    constructor (props) {
+      this.id = props.id
+      this.node = props.node
+      this.node_id = props.node_id
+      this.val = props.val
+    }
+  }
+  const RefObjects = ormnomnom(Ref, {
+    id: ormnomnom.joi.number(),
+    node: Node,
+    val: ormnomnom.joi.number()
+  })
+  var NodeObjects = ormnomnom(Node, {
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
+  })
+
+  NodeObjects
+  RefObjects.filter({'node.name:endsWith': 'busey'}).valuesList(['node_id', 'node.val']).then(xs => {
+    assert.deepEqual(xs, [2, 100, 3, -100])
+  })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
+tape('test count', function (assert) {
+  class Node {
+    constructor (props) {
+      this.id = props.id
+      this.name = props.name
+      this.val = props.val
+    }
+  }
+  var NodeObjects = ormnomnom(Node, {
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
+  })
+  NodeObjects.filter({'val:gt': 10}).count().then(function (xs) {
+    assert.equal(xs, '1')
+  })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
+tape('test getOrCreate already exists', function (assert) {
+  class Node {
+    constructor (props) {
+      this.id = props.id
+      this.name = props.name
+      this.val = props.val
+    }
+  }
+  var NodeObjects = ormnomnom(Node, {
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
+  })
+  NodeObjects.getOrCreate({name: 'jake busey', val: 100}).spread((created, xs) => {
+    assert.equal(created, false)
+    assert.equal(xs.name, 'jake busey')
+  })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
+tape('test getOrCreate does not exist', function (assert) {
+  class Node {
+    constructor (props) {
+      this.id = props.id
+      this.name = props.name
+      this.val = props.val
+    }
+  }
+  var NodeObjects = ormnomnom(Node, {
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
+  })
+  NodeObjects.getOrCreate({name: 'johnny five', val: 100}).spread((created, xs) => {
+    assert.equal(created, true)
+    assert.equal(xs.name, 'johnny five')
+  })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
+tape('test get fails on multiple objects returned', function (assert) {
+  class Node {
+    constructor (props) {
+      this.id = props.id
+      this.name = props.name
+      this.val = props.val
+    }
+  }
+  var NodeObjects = ormnomnom(Node, {
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
+  })
+  NodeObjects.get({'name:contains': 'busey'}).catch(err => {
+    assert.equal(err.constructor, NodeObjects.MultipleObjectsReturned)
+  })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
+tape('test get fails on zero objects returned', function (assert) {
+  class Node {
+    constructor (props) {
+      this.id = props.id
+      this.name = props.name
+      this.val = props.val
+    }
+  }
+  var NodeObjects = ormnomnom(Node, {
+    id: ormnomnom.joi.number(),
+    name: ormnomnom.joi.string(),
+    val: ormnomnom.joi.number()
+  })
+  NodeObjects.get({'name': 'ford prefect'}).catch(err => {
+    assert.equal(err.constructor, NodeObjects.NotFound)
+  })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
 tape('drop database', function (assert) {
   db.teardown().then(assert.end, assert.end)
 })
