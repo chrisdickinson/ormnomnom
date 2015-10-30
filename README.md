@@ -81,6 +81,7 @@ DAOs provide the following querying methods:
 * [`all`](#querysetall)
 * [`get`](#querysetget)
 * [`filter`](#querysetfilter)
+* [`exclude`](#querysetexclude)
 * [`create`](#querysetcreate)
 * [`update`](#querysetupdate)
 * [`delete`](#querysetdelete)
@@ -134,7 +135,10 @@ Return a new queryset representing a set of rows where `WhereClause` is true,
 in addition to all previously added `WhereClause`'s. See [`WhereClause`](#whereclause)
 for more info on the operations available in a where clause.
 
+#### `QuerySet#exclude(WhereClause)`
 
+The antithesis of `filter` — instead of including rows where `WhereClause` is true,
+include only rows where `WhereClause` is false.
 
 #### `QuerySet#create()`
 #### `QuerySet#update()`

@@ -205,6 +205,9 @@ const filterTests = [{
 }, {
   query: FrobnicatorObjects.all().order(['val', '-id']),
   expect: [2, 1, 5, 4, 3]
+}, {
+  query: FrobnicatorObjects.exclude({'name:iContains': 'o'}),
+  expect: [2]
 }]
 
 filterTests.forEach(test => {
