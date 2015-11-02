@@ -1,0 +1,11 @@
+sudo: false
+language: node_js
+node_js:
+  - "iojs"
+  - "4.1.x"
+  - "4.0.x"
+addons:
+  postgresql: "9.4"
+
+services:
+  - postgresql
