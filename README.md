@@ -1,64 +1,57 @@
 # ormnomnom
 
-Yet another orm, but hopefully you will forgive me. Every time I work on a web
-service, I start wishing for this ORM, but now that it's a reality, I think we
-can agree that some things should remain daydreams.
-
-*Caution*: This library exposes bluebird promises to calling modules.
+ORMnomnom is yet another Node ORM. It is specifically for use with postgres
+(via [pg](http://npm.im/pg)), exposes single-async-events as
+[bluebird](http://npm.im/bluebird) promises, and exposes async-iterables as
+[streams](http://nodejs.org/api/stream.html). It requires a modern version of
+Node (v4+).
 
 ```javascript
-const ormnomnom = require('ormnomnom')
-const joi = ormnomnom.joi // comes with joi.
+const orm = require('ormnomnom')
+const extend = require('xtend')
 
-const PackageObjects = ormnomnom(Package, {
-  id: joi.number().integer(),
-  name: joi.string().required(),
-  created: joi.date(),
-  updated: joi.date(),
-  deleted: joi.date()
-})
-
-const UsageObjects = ormnomnom(Usage, {
-  id: joi.number().integer(),
-  name: joi.string().required(),
-  package: Package    // we can reference other tables by referring to their
-                      // associated functions
-})
-
-function Package (data) {
-  util._extend(this, data)
+class Package {
+  constructor (opts) {
+    extend(this, opts)
+  }
 }
 
-function Usage (data) {
-  util._extend(this, data)
+class Author {
+  constructor (opts) {
+    extend(this, opts)
+  }
 }
 
-UsageObjects.create({
-  name: 'ok, some usage',
-  package: PackageObjects.create({
-    name: 'ok, a package'
-  })
-}).then(function (usage) {
-  console.log(usage)
-  /*
-    Usage {
-      id: 121
-      name: 'ok, some usage',
-      package_id: 20101,
-      package: Package {
-        id: 20101,
-        name: 'ok, a package'
-        created: date,
-        updated: date,
-        deleted: null
-      },
-    }
-  */
+const PackageObjects = orm(Package, {
+  id: orm.joi.number(),
+  name: orm.joi.string().lowercase().required(),
+  author: Author
 })
 
+const AuthorObjects = orm(Author, {
+  id: orm.joi.number(),
+  name: orm.joi.string().lowercase().required(),
+  email: orm.joi.string().email().required()
+})
+
+PackageObjects.filter({'author.name:startsWith': 'Gary'}).then(objects => {
+  // list of objects
+})
 ```
 
-## API
+## Documentation
+
+* [Getting Started with ORMnomnom](docs/getting-started.md)
+  * [Building models](docs/building-models.md)
+  * [Making queries](docs/making-queries.md)
+  * [Validation](docs/understanding-validation.md)
+  * [Common Patterns](docs/common-patterns.md)
+* **[Reference documentation]()**
+  * [Data access objects]()
+  * [QuerySets]()
+    * [Filters]()
+
+Please refer to the [docs](docs/index.md).
 
 ### Data Access Objects
 
