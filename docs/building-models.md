@@ -13,7 +13,8 @@ To see what this looks like, consider this simple example:
 const orm = require('ormnomnom')
 
 class Book {
-  constructor ({title, publish_date, byline}={}) {
+  constructor ({id, title, publish_date, byline}={}) {
+    this.id = id
     this.title = title
     this.publishDate = publish_date
     this.byline = byline
@@ -40,11 +41,11 @@ ORMnomnom *does not* add any methods to `Book` — **everything** is done throug
 `BookObjects`. `Book` is used solely to materialize rows, and as a way to infer
 a table name for the query builder.
 
-By default, ORMnomnom will assume that the [table name][what-is-a-table]
+By default, ORMnomnom will assume that the [table name][def-table]
 of a given model is `constructor.name.toLowerCase() + 's'` – that is, the
 lowercased, pluralized name of the constructor function passed to ORMnomnom.
 Additionally, ORMnomnom will assume that the name of the [primary
-key][what-is-a-primary-key] for the table is `id`. You can read about all of
+key][def-primary-key] for the table is `id`. You can read about all of
 the options ORMnomnom accepts in the [DAO reference
 documentation][ref-dao].
 
@@ -83,7 +84,7 @@ to allow users to more easily determine the origin of a given error.
 In the next section, we'll [explore the full query API][guide-querying].
 
 [ref-dao]: ./ref/dao.md
-[what-is-a-table]: http://www.sqlcourse.com/table.html
-[what-is-a-primary-key]: https://en.wikipedia.org/wiki/Unique_key#Summary
+[def-table]: http://www.sqlcourse.com/table.html
+[def-primary-key]: https://en.wikipedia.org/wiki/Unique_key#Summary
 [ref-queryset]: ./ref/queryset.md
-[guide-querying]: ./ref/making-queries.md
+[guide-querying]: ./making-queries.md

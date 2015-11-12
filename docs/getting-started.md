@@ -65,5 +65,32 @@ exists.
 If you get any errors from this process, please [open an
 issue](https://github.com/chrisdickinson/ormnomnom/issues/new).
 
-If all of that worked, you're ready to [build your first
-model](./guide-building-models.md).
+## Setting up a Connection
+
+ORMnomnom does not know how to get a postgres connection out of the box — your
+application is in charge of telling ORMnomnom how to attain a connection as
+well as how to release it. ORMnomnom will try to attain a connection whenever a
+query is about to be run, and will release that connection after the query has
+executed.
+
+An example of creating a connection follows:
+
+```javascript
+const Promise = require('bluebird')
+const orm = require('ormnomnom')
+const pg = require('pg')
+
+orm.setConnection(function () {
+  const deferred = Promise.defer()
+  pg.connect({/* params */}, function (err, conn, done) {
+    if (err) {
+      return deferred.reject(err)
+    }
+    return deferred.resolve({connection: conn, release: done})
+  })
+  return deferred.promise
+})
+
+```
+
+The next step is to [start defining models](./building-models.md)!
