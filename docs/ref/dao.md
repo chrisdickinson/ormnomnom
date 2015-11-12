@@ -112,6 +112,8 @@ rows were found.
 ##### `orm.Conflict`
 ##### `DAO<Model>.Conflict`
 
+[def-joi]: https://www.npmjs.org/package/joi
+[def-clause]: ./queryset.md#clauses
 [ref-queryset]: ./queryset.md
 [def-pg]: https://www.npmjs.org/package/pg
 [def-pg-client]: https://github.com/brianc/node-postgres/wiki/Client
