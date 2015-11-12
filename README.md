@@ -25,7 +25,7 @@ class Author {
 const PackageObjects = orm(Package, {
   id: orm.joi.number(),
   name: orm.joi.string().lowercase().required(),
-  author: Author
+  author: orm.fk(Author)
 })
 
 const AuthorObjects = orm(Author, {
@@ -41,17 +41,13 @@ PackageObjects.filter({'author.name:startsWith': 'Gary'}).then(objects => {
 
 ## Documentation
 
-* [Getting Started with ORMnomnom](docs/getting-started.md)
+* **[Getting Started with ORMnomnom](docs/getting-started.md)**
   * [Building models](docs/building-models.md)
   * [Making queries](docs/making-queries.md)
-  * [Validation](docs/understanding-validation.md)
-  * [Common Patterns](docs/common-patterns.md)
-* **[Reference documentation]()**
-  * [Data access objects]()
-  * [QuerySets]()
-    * [Filters]()
-
-Please refer to the [docs](docs/index.md).
+* **[Reference documentation](docs/ref/index.md)**
+  * [Data access objects](docs/ref/dao.md)
+  * [QuerySets](docs/ref/queryset.md)
+    * [Clauses](docs/ref/queryset.md#clauses)
 
 ### Data Access Objects
 

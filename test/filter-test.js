@@ -27,7 +27,7 @@ const FrobnicatorObjects = ormnomnom(Frobnicator, {
 
 const RefObjects = ormnomnom(Ref, {
   'id': ormnomnom.joi.number(),
-  'frob': Frobnicator,
+  'frob': ormnomnom.fk(Frobnicator),
   'val': ormnomnom.joi.number().required()
 })
 
@@ -237,7 +237,7 @@ tape('test invalid fk filter: not a model', function (assert) {
 
   const RefObjects = ormnomnom(Ref, {
     'id': ormnomnom.joi.number(),
-    'frob': FakeFrob,
+    'frob': ormnomnom.fk(FakeFrob),
     'val': ormnomnom.joi.number().required()
   })
 

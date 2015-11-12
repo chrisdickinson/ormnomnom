@@ -23,7 +23,7 @@ class Ref {
 }
 const RefObjects = ormnomnom(Ref, {
   id: ormnomnom.joi.number(),
-  node: Node,
+  node: ormnomnom.fk(Node),
   val: ormnomnom.joi.number()
 })
 var NodeObjects = ormnomnom(Node, {
