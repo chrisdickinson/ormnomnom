@@ -13,7 +13,7 @@ const dao = orm(MyFunction, {id: true})
 Given a function and an object describing the columns the backing table has,
 ormnomnom will return a "data access object," or **"DAO"**. The DAO exposes all
 of the functionality that ormnomnom provides. Primarily, the DAO provides
-access to [QuerySets](./queryset.md), which represent postgres operations as a
+access to [QuerySets][ref-queryset], which represent postgres operations as a
 set of their results.
 
 ## Public API
@@ -47,36 +47,71 @@ orm.setConnection(() => {
 })
 ```
 
-##### `orm(Model, DDL[, options]) → DAO<Model>`
+##### `orm(Model, Schema[, options]) → DAO<Model>`
 
 ##### `orm.fk(Model[, options]) → ForeignKeyDefinition`
 
-##### `DAO<Model>#all() → QuerySet<Model>`
+Create a foreign key definition suitable for use in a [model
+schema][def-model-schema].
 
-##### `DAO<Model>#filter(Clause) → QuerySet<Model>`
+##### `orm.joi`
 
-##### `DAO<Model>#exclude(Clause) → QuerySet<Model>`
-
-##### `DAO<Model>#get(Clause) → Promise<Model>`
-
-##### `DAO<Model>#create(Object) → Promise<Model>`
+The [joi][def-joi] version used by this installation of ORMnomnom. For use
+when defining the [model schema][def-model-schema].
 
 ##### `DAO<Model>#getOrCreate(Object) → Promise<[Boolean, Model]>`
 
+Attempt to fetch and materialize a row using `Object` as a
+[`Clause`][def-clause]. If no row exists, insert a new row using `Object`
+as the source data. Returns a `Promise` for a two element array. The first
+element is a boolean indicating whether or not a new row had to be inserted.
+The second element is a model instance.
+
+##### `DAO<Model>#all() → QuerySet<Model>`
+
+[See `QuerySet#all`](./queryset.md#querysetmodelall).
+
+##### `DAO<Model>#filter(Clause) → QuerySet<Model>`
+
+[See `QuerySet#filter`](./queryset.md#querysetfilterclause).
+
+##### `DAO<Model>#exclude(Clause) → QuerySet<Model>`
+
+[See `QuerySet#exclude`](./queryset.md#querysetexcludeclause).
+
+##### `DAO<Model>#get(Clause) → Promise<Model>`
+
+[See `QuerySet#get`](./queryset.md#querysetgetclause).
+
+##### `DAO<Model>#create(Object) → Promise<Model>`
+
+[See `QuerySet#create`](./queryset.md#querysetcreatedata).
+
 ##### `DAO<Model>#update(Data) → Promise<Number>`
 
+[See `QuerySet#update`](./queryset.md#querysetupdatedata).
+
 ##### `DAO<Model>#delete() → Promise<Number>`
+
+[See `QuerySet#delete`](./queryset.md#querysetdelete).
 
 ### Errors
 
 ##### `orm.NotFound`
 ##### `DAO<Model>.NotFound`
 
+Raised when the query was expected to represent at least one row, but no
+rows were found.
+
 ##### `orm.MultipleObjectsReturned`
 ##### `DAO<Model>.MultipleObjectsReturned`
+
+Raised when the query was expected to represent at most one row, but multiple
+rows were found.
 
 ##### `orm.Conflict`
 ##### `DAO<Model>.Conflict`
 
+[ref-queryset]: ./queryset.md
 [def-pg]: https://www.npmjs.org/package/pg
 [def-pg-client]: https://github.com/brianc/node-postgres/wiki/Client

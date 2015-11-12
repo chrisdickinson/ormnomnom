@@ -29,11 +29,11 @@ var firstLetters = LetterObjects.all().slice(0, 13)
 firstLetters = onlyTheBest(firstLetters)
 ```
 
-#### `QuerySet<Model>#get(Clause)`
+#### `QuerySet#get(Clause)`
 
 * **Returns:** `Promise<Model>`
 * **Failure States:**
-  * [`DAO<Model>.DoesNotExist`][ref-dao-doesnotexist]
+  * [`DAO<Model>.NotFound`][ref-dao-notfound]
   * [`DAO<Model>.MultipleObjectsReturned`][ref-dao-multipleobjectsreturned]
   * `pg` errors
 
@@ -55,8 +55,8 @@ for more info on the operations available in a where clause.
 The antithesis of `filter` — instead of including rows where `Clause` is true,
 include only rows where `Clause` is false.
 
-#### `QuerySet#create()`
-#### `QuerySet#update()`
+#### `QuerySet#create(Data)`
+#### `QuerySet#update(Data)`
 #### `QuerySet#delete()`
 #### `QuerySet#count()`
 
@@ -185,3 +185,5 @@ bookDAO.filter({
 })
 ```
 
+[ref-dao-notfound]: ./dao.md#daomodelnotfound
+[ref-dao-multipleobjectsreturned]: ./dao.md#daomodelmultipleobjectsreturned
