@@ -41,10 +41,11 @@ PackageObjects.filter({'author.name:startsWith': 'Gary'}).then(objects => {
 
 ## Documentation
 
-* **[Getting Started with ORMnomnom](docs/getting-started.md)**
+* **Introduction**
+  * [Getting Started with ORMnomnom](docs/getting-started.md)
   * [Building models](docs/building-models.md)
   * [Making queries](docs/making-queries.md)
-* **[Reference documentation](docs/ref/index.md)**
+* **Reference documentation**
   * [Data access objects](docs/ref/dao.md)
   * [QuerySets](docs/ref/queryset.md)
     * [Clauses](docs/ref/queryset.md#clauses)
