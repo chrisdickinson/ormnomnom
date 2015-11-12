@@ -70,7 +70,7 @@ const sorryFyodor = BookObjects.exclude({
 ```
 
 There's a lot more available to work with — be sure to check out
-the [complete list of clause operations][ref-clause-operations], and the
+the [complete list of clause relations][ref-clause-relations], and the
 [`QuerySet` reference docs][ref-queryset] for more information.
 
 ## Materializing QuerySets
@@ -285,7 +285,7 @@ ReviewObjects.create({
 [guide-building-models]: ./building-models.md
 [ref-clause]: ./ref/queryset.md#clauses
 [link-materialization]: #materializing-querysets
-[ref-clause-operations]: ./ref/queryset.md#clause-operations
+[ref-clause-relations]: ./ref/queryset.md#clause-relations
 [def-stream]: https://nodejs.org/api/stream.html#stream_stream
 [def-promise]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
 [def-foreign-key]: https://en.wikipedia.org/wiki/Foreign_key
