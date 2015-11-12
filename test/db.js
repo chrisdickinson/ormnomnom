@@ -40,10 +40,10 @@ function getConnection () {
       .once('error', reject)
       .once('connect', _ => {
         client.removeListener('error', reject)
-        resolve(client)
-        setTimeout(_ => {
-          client.end()
-        }, 50)
+        resolve({
+          connection: client,
+          release: _ => client.end()
+        })
       })
   })
 }
@@ -59,10 +59,12 @@ function schema (chunks) {
   const ddl = out.join('')
   return getConnection().then(function (client) {
     return new Promise((resolve, reject) => {
-      const query = client.query(ddl)
-      query.once('error', reject)
+      const query = client.connection.query(ddl)
+      query.once('error', err => {
+        reject(err)
+      })
       query.once('end', function () {
-        client.end()
+        client.release()
         resolve()
       })
     })

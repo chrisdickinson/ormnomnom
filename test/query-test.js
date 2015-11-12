@@ -68,9 +68,9 @@ tape('test insert', function (assert) {
     assert.equal(xs.val, 3)
     return db.getConnection()
   }).then(conn => {
-    return Promise.promisify(conn.query.bind(conn))(
+    return Promise.promisify(conn.connection.query.bind(conn.connection))(
       'select * from nodes where id=1'
-    )
+    ).tap(() => conn.release())
   }).then(results => {
     assert.deepEqual(results.rows, [{
       id: 1,
@@ -91,9 +91,9 @@ tape('test update (none affected)', function (assert) {
       assert.equal(xs, 0)
       return db.getConnection()
     }).then(conn => {
-      return Promise.promisify(conn.query.bind(conn))(
+      return Promise.promisify(conn.connection.query.bind(conn.connection))(
         'select * from nodes'
-      )
+      ).tap(() => conn.release())
     }).then(results => {
       assert.deepEqual(results.rows, [{
         id: 1,
@@ -114,9 +114,9 @@ tape('test update (one affected)', function (assert) {
       assert.deepEqual(xs, 1)
       return db.getConnection()
     }).then(conn => {
-      return Promise.promisify(conn.query.bind(conn))(
+      return Promise.promisify(conn.connection.query.bind(conn.connection))(
         'select * from nodes'
-      )
+      ).tap(() => conn.release())
     }).then(results => {
       assert.deepEqual(results.rows, [{
         id: 1,
@@ -136,9 +136,9 @@ tape('test delete', function (assert) {
       assert.deepEqual(xs, 1)
       return db.getConnection()
     }).then(conn => {
-      return Promise.promisify(conn.query.bind(conn))(
+      return Promise.promisify(conn.connection.query.bind(conn.connection))(
         'select * from nodes'
-      )
+      ).tap(() => conn.release())
     }).then(results => {
       assert.deepEqual(results.rows, [], 'independently verify absence in db')
     })

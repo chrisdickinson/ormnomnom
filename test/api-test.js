@@ -17,8 +17,8 @@ tape('produces expected table name', function (assert) {
   const objects = ormnomnom(TestFoo, {
     id: ormnomnom.joi.number()
   })
-  objects.all().raw().then(info => {
-    assert.ok(/"test_foos"/g.test(info.sql))
+  objects.all().sql.then(sql => {
+    assert.ok(/"test_foos"/g.test(sql))
   })
   .return(null)
   .then(assert.end)
