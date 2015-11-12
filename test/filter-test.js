@@ -33,7 +33,7 @@ const RefObjects = ormnomnom(Ref, {
 
 const testData = [
   {kind: FrobnicatorObjects, name: 'HELLO', val: 3},
-  {kind: FrobnicatorObjects, name: 'gary busey', val: -10},
+  {kind: FrobnicatorObjects, name: 'Gary busey', val: -10},
   {kind: FrobnicatorObjects, name: 'John Bonham', val: 10000},
   {kind: FrobnicatorObjects, name: 'Mona Lisa', val: 10},
   {kind: FrobnicatorObjects, val: 10},
@@ -107,7 +107,7 @@ const filterTests = [{
   expect: [3, 4]
 }, {
   query: FrobnicatorObjects.filter({
-    'name:startsWith': 'gary'
+    'name:startsWith': 'Gary'
   }),
   expect: [2]
 }, {
@@ -117,7 +117,7 @@ const filterTests = [{
   expect: [2]
 }, {
   query: FrobnicatorObjects.filter({
-    'name:in': ['gary busey', 'Mona Lisa', 'HELLO']
+    'name:in': ['Gary busey', 'Mona Lisa', 'HELLO']
   }),
   expect: [1, 2, 4]
 }, {
@@ -127,7 +127,7 @@ const filterTests = [{
   expect: []
 }, {
   query: FrobnicatorObjects.filter({
-    'name:notIn': ['gary busey']
+    'name:notIn': ['Gary busey']
   }),
   expect: [1, 3, 4]
 }, {
@@ -195,7 +195,7 @@ const filterTests = [{
   expect: [3]
 }, {
   query: RefObjects.all().order('-frob.name'),
-  expect: [2, 3, 1]
+  expect: [3, 1, 2]
 }, {
   query: RefObjects.all().order('frob.val'),
   expect: [2, 1, 3]
@@ -257,7 +257,7 @@ tape('test invalid fk filter: not a fk', function (assert) {
 })
 
 tape('test filter by foreign instance', function (assert) {
-  var getFrob = FrobnicatorObjects.get({name: 'gary busey'})
+  var getFrob = FrobnicatorObjects.get({name: 'Gary busey'})
   var getRefs = getFrob.then(frob => {
     return RefObjects.filter({frob}).valuesList('id')
   })
@@ -268,7 +268,7 @@ tape('test filter by foreign instance', function (assert) {
 
 tape('test filter by foreign promise', function (assert) {
   var getRefs = RefObjects.filter({
-    frob: FrobnicatorObjects.get({name: 'gary busey'})
+    frob: FrobnicatorObjects.get({name: 'Gary busey'})
   }).valuesList('id')
   getRefs.then(ids => {
     assert.deepEqual(ids, [2])
