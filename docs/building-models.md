@@ -2,10 +2,10 @@
 
 Models in ORMnomnom work slightly differently than most ORMs, in that ORMnomnom
 models are really [Data Access Objects][ref-dao]. While individual rows
-resulting from queries made to the database are still realized as instances the
-model class you provide, ORMnomnom does not install any new methods or require
-any subclassing on your model's part. Indeed, ORMnomnom does not even require
-that data passed to it be *instances* of your model class.
+resulting from queries made to the database are still realized as instances of
+the model class you provide, ORMnomnom does not install any new methods or
+require any subclassing on your model's part. Indeed, ORMnomnom does not even
+require that data passed to it be *instances* of your model class.
 
 To see what this looks like, consider this simple example:
 
