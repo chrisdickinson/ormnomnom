@@ -299,8 +299,8 @@ tape('test get fails on multiple objects returned', function (assert) {
 })
 
 tape('test get fails on zero objects returned', function (assert) {
-  NodeObjects.get({'name': 'ford prefect'}).catch(err => {
-    assert.equal(err.constructor, NodeObjects.NotFound)
+  NodeObjects.get({'name': 'ford prefect'})
+  .catch(NodeObjects.NotFound, err => {
     assert.equal(err.message, 'Node not found')
     assert.ok(err instanceof ormnomnom.NotFound)
   })
