@@ -321,6 +321,15 @@ tape('test reverse relation', function (assert) {
   .catch(assert.end)
 })
 
+tape('test reverse query', function (assert) {
+  NodeObjects.filter({'refs.val:gt': 0}).then(xs => {
+    assert.equal(xs.length, 2)
+  })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
 tape('drop database', function (assert) {
   db.teardown().then(assert.end, assert.end)
 })
