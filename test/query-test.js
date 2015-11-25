@@ -214,6 +214,25 @@ tape('test deep values select', function (assert) {
   .catch(assert.end)
 })
 
+tape('test "in query" optimization', function (assert) {
+  RefObjects.filter({
+    'node_id:in': NodeObjects.filter({name: 'gary busey'}).valuesList('id')
+  }).sql.then(sql => {
+    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT  "refs"."id" as "refs.id" , "refs"."node_id" as "refs.node_id" , "refs"."val" as "refs.val" FROM "refs" WHERE (("refs"."node_id" IN ( SELECT  "nodes"."id" as "nodes.id" FROM "nodes" WHERE (("nodes"."name" = $1)) LIMIT ALL OFFSET 0 ))) LIMIT ALL OFFSET 0`)
+    assert.end()
+  })
+})
+
+tape('test "in query" optimization w/prepended value', function (assert) {
+  RefObjects.filter({
+    'node.name': 'squidward',
+    'node_id:in': NodeObjects.filter({name: 'gary busey'}).valuesList('id')
+  }).sql.then(sql => {
+    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT  "refs"."id" as "refs.id" , "refs"."node_id" as "refs.node_id" , "refs"."val" as "refs.val" , "nodes"."id" as "refs.node.id" , "nodes"."name" as "refs.node.name" , "nodes"."val" as "refs.node.val" FROM "refs" LEFT JOIN "nodes" ON ( "refs"."node_id" = "nodes"."id" ) WHERE (("nodes"."name" = $1) AND ("refs"."node_id" IN ( SELECT  "nodes"."id" as "nodes.id" FROM "nodes" WHERE (("nodes"."name" = $2)) LIMIT ALL OFFSET 0 ))) LIMIT ALL OFFSET 0`)
+    assert.end()
+  })
+})
+
 tape('test values list', function (assert) {
   RefObjects.filter({'node.name:endsWith': 'busey'}).valuesList(['node_id', 'node.val']).then(xs => {
     assert.deepEqual(xs, [2, 100, 3, -100])
