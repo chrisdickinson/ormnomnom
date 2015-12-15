@@ -4,7 +4,7 @@
   "description": "a lightweight orm to silence the orm-y beast",
   "main": "lib/ormnomnom.js",
   "scripts": {
-    "test": "standard && tape test/*-test.js",
+    "test": "tape test/*-test.js && standard",
     "test-cov": "nyc tape test/*-test.js"
   },
   "repository": {

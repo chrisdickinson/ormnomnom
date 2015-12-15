@@ -129,6 +129,33 @@ tape('test update (one affected)', function (assert) {
   .catch(assert.end)
 })
 
+tape('test update (one affected, with join)', function (assert) {
+  RefObjects.create({val: 0, node: NodeObjects.get({name: 'gary busey'})})
+    .then(() => {
+      const subquery = RefObjects
+        .filter({'node.val': 10})
+        .update({val: 1000})
+
+      return subquery
+    }).then(xs => {
+      assert.deepEqual(xs, 1)
+      return db.getConnection()
+    }).then(conn => {
+      return Promise.promisify(conn.connection.query.bind(conn.connection))(
+        'select * from refs'
+      ).tap(() => conn.release())
+    }).then(results => {
+      assert.deepEqual(results.rows, [{
+        id: 1,
+        node_id: 1,
+        val: 1000
+      }], 'independently verify presence in db')
+    })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
 tape('test delete', function (assert) {
   NodeObjects
     .delete()
