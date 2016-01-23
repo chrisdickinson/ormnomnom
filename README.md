@@ -39,7 +39,7 @@ PackageObjects.filter({'author.name:startsWith': 'Gary'}).then(objects => {
 })
 ```
 
-## Documentation
+## :triangular_ruler: Documentation
 
 * **Introduction**
   * [Getting Started with ORMnomnom](docs/getting-started.md)
