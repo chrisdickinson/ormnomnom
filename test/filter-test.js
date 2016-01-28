@@ -256,6 +256,12 @@ tape('test invalid fk filter: not a fk', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
+tape('test order + count', function (assert) {
+  FrobnicatorObjects.all().order('val').count().then(cnt => {
+    assert.ok('should have succeeded.')
+  }).return(null).then(assert.end).catch(assert.end)
+})
+
 tape('test filter by foreign instance', function (assert) {
   var getFrob = FrobnicatorObjects.get({name: 'Gary busey'})
   var getRefs = getFrob.then(frob => {
