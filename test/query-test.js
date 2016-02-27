@@ -357,6 +357,27 @@ tape('test reverse query', function (assert) {
   .catch(assert.end)
 })
 
+tape('test bulk insert', function (assert) {
+  const bulkInsert = NodeObjects.create([{
+    val: 100,
+    name: 'jake busey'
+  }, {
+    val: 200,
+    name: 'gerald busey'
+  }])
+
+  bulkInsert
+    .then(ref => {
+      assert.equal(ref[0].val, 100)
+      assert.equal(ref[0].name, 'jake busey')
+      assert.equal(ref[1].val, 200)
+      assert.equal(ref[1].name, 'gerald busey')
+    })
+  .return(null)
+  .then(assert.end)
+  .catch(assert.end)
+})
+
 tape('drop database', function (assert) {
   db.teardown().then(assert.end, assert.end)
 })
