@@ -245,7 +245,7 @@ tape('test "in query" optimization', function (assert) {
   RefObjects.filter({
     'node_id:in': NodeObjects.filter({name: 'gary busey'}).valuesList('id')
   }).sql.then(sql => {
-    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT  "refs"."id" as "refs.id" , "refs"."node_id" as "refs.node_id" , "refs"."val" as "refs.val" FROM "refs" WHERE (("refs"."node_id" IN ( SELECT  "nodes"."id" as "nodes.id" FROM "nodes" WHERE (("nodes"."name" = $1)) LIMIT ALL OFFSET 0 ))) LIMIT ALL OFFSET 0`)
+    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT "refs"."id" AS "refs.id", "refs"."node_id" AS "refs.node_id", "refs"."val" AS "refs.val" FROM "refs" "refs"  WHERE "refs"."node_id" IN (SELECT "nodes"."id" AS "nodes.id" FROM "nodes" "nodes"  WHERE "nodes"."name" = $1  LIMIT ALL OFFSET 0)  LIMIT ALL OFFSET 0`)
     assert.end()
   })
 })
@@ -255,7 +255,7 @@ tape('test "in query" optimization w/prepended value', function (assert) {
     'node.name': 'squidward',
     'node_id:in': NodeObjects.filter({name: 'gary busey'}).valuesList('id')
   }).sql.then(sql => {
-    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT  "refs"."id" as "refs.id" , "refs"."node_id" as "refs.node_id" , "refs"."val" as "refs.val" , "nodes"."id" as "refs.node.id" , "nodes"."name" as "refs.node.name" , "nodes"."val" as "refs.node.val" FROM "refs" LEFT JOIN "nodes" ON ( "refs"."node_id" = "nodes"."id" ) WHERE (("nodes"."name" = $1) AND ("refs"."node_id" IN ( SELECT  "nodes"."id" as "nodes.id" FROM "nodes" WHERE (("nodes"."name" = $2)) LIMIT ALL OFFSET 0 ))) LIMIT ALL OFFSET 0`)
+    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT "refs"."id" AS "refs.id", "refs"."node_id" AS "refs.node_id", "refs"."val" AS "refs.val", "nodes"."id" AS "refs.node.id", "nodes"."name" AS "refs.node.name", "nodes"."val" AS "refs.node.val" FROM "refs" "refs" LEFT  JOIN "nodes" "nodes" ON ( "refs"."node_id" = "nodes"."id" ) WHERE ("nodes"."name" = $1 AND "refs"."node_id" IN (SELECT "nodes"."id" AS "nodes.id" FROM "nodes" "nodes"  WHERE "nodes"."name" = $2  LIMIT ALL OFFSET 0))  LIMIT ALL OFFSET 0`)
     assert.end()
   })
 })
