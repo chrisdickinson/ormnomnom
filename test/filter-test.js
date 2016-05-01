@@ -272,6 +272,50 @@ tape('test filter by foreign instance', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
+tape('test filter by OR', function (assert) {
+  var getSQL = FrobnicatorObjects.filter([{
+    name: 'Gary busey'
+  }, {
+    name: 'Jake busey'
+  }]).raw()
+
+  return getSQL.then(raw => {
+    raw.release()
+    assert.ok(
+      raw.sql.indexOf(
+        'WHERE ("frobnicators"."name" = $1 OR "frobnicators"."name" = $2)'
+      ) !== -1,
+      'contains expected clause'
+    )
+    assert.deepEqual([
+      'Gary busey',
+      'Jake busey'
+    ], raw.values)
+  }).return(null).then(assert.end).catch(assert.end)
+})
+
+tape('test filter by OR+promise', function (assert) {
+  var getSQL = FrobnicatorObjects.filter([{
+    name: Promise.resolve('Gary busey')
+  }, {
+    name: Promise.resolve('Jake busey')
+  }]).raw()
+
+  return getSQL.then(raw => {
+    raw.release()
+    assert.ok(
+      raw.sql.indexOf(
+        'WHERE ("frobnicators"."name" = $1 OR "frobnicators"."name" = $2)'
+      ) !== -1,
+      'contains expected clause'
+    )
+    assert.deepEqual([
+      'Gary busey',
+      'Jake busey'
+    ], raw.values)
+  }).return(null).then(assert.end).catch(assert.end)
+})
+
 tape('test filter by foreign promise', function (assert) {
   var getRefs = RefObjects.filter({
     frob: FrobnicatorObjects.get({name: 'Gary busey'})
