@@ -8,17 +8,16 @@ Node (v4+).
 
 ```javascript
 const orm = require('ormnomnom')
-const extend = require('xtend')
 
 class Package {
   constructor (opts) {
-    extend(this, opts)
+    Object.assign(this, opts)
   }
 }
 
 class Author {
   constructor (opts) {
-    extend(this, opts)
+    Object.assign(this, opts)
   }
 }
 
