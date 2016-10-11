@@ -110,6 +110,15 @@ userDAO.values('id', 'username').createStream().on('data', console.log)
 the output stream instead of associating them with an object first. This is super
 handy for, e.g., generating `in` queries:
 
+
+#### `QuerySet#distinct()`
+
+* **Returns:** `QuerySet<Model>`
+
+Returns a queryset that will run `SELECT DISTINCT` instead of `SELECT`.
+
+Only applies to `SELECT` operations.
+
 ```javascript
 PackageData.objects.filter('owner_id:in', UserData.filter({
   'name:startsWith': 'bulletproo'
