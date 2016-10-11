@@ -111,11 +111,14 @@ the output stream instead of associating them with an object first. This is supe
 handy for, e.g., generating `in` queries:
 
 
-#### `QuerySet#distinct()`
+#### `QuerySet#distinct(columns)`
 
+* **Argument:** `columns` — may be a `String` or `Array<String>` representing
+  the columns to consider when deduplicating. Defaults to `"id"`.
 * **Returns:** `QuerySet<Model>`
 
-Returns a queryset that will run `SELECT DISTINCT` instead of `SELECT`.
+Returns a queryset that will run `SELECT DISTINCT ON (columns)` instead of
+`SELECT`.
 
 Only applies to `SELECT` operations.
 
