@@ -196,10 +196,13 @@ tape('test nested insert', function (assert) {
 })
 
 tape('test simple select', function (assert) {
-  RefObjects.create({val: 300, node: NodeObjects.create({
-    name: 'gary busey',
-    val: -100
-  })}).then(_ => {
+  RefObjects.create({
+    val: 300,
+    node: NodeObjects.create({
+      name: 'gary busey',
+      val: -100
+    })
+  }).then(_ => {
     return RefObjects.filter({'node.name:startsWith': 'jake'}).then(xs => {
       assert.equal(xs.length, 1)
       assert.equal(xs[0].node.name, 'jake busey')
