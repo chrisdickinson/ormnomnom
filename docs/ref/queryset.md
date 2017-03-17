@@ -169,7 +169,7 @@ The built in relations are as follows:
 
 Relation Name | Description                                         | Effect on validation
 ------------- | --------------------------------------------------- | -----------------------
-              | Omitted relations are treated as "eq".              | Applied from DAO DDL
+(nothing)     | Omitted relations are treated as "eq".              | Applied from DAO DDL
 `eq`          | Column should equal value.                          | Applied from DAO DDL
 `neq`         | Column should not equal value.                      | Applied from DAO DDL
 `contains`    | Column should contain string.                       | Must be string
