@@ -4,8 +4,9 @@
   "description": "a lightweight orm to silence the orm-y beast",
   "main": "lib/ormnomnom.js",
   "scripts": {
-    "test": "tape test/*-test.js && standard",
-    "test-cov": "nyc tape test/*-test.js"
+    "test": "tap test/*-test.js",
+    "posttest": "standard",
+    "test-cov": "tap --cov test/*-test.js"
   },
   "repository": {
     "type": "git",
@@ -32,7 +33,6 @@
     "nyc": "^8.3.2",
     "pg": "^6.1.0",
     "standard": "^8.5.0",
-    "tap-dot": "^1.0.5",
-    "tape": "^4.6.2"
+    "tap": "^10.3.1"
   }
 }

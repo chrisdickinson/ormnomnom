@@ -1,16 +1,16 @@
 'use strict'
 
 const Promise = require('bluebird')
-const tape = require('tape')
+const test = require('tap').test
 
 const ormnomnom = require('..')
 const db = require('./db.js')
 
-tape('setup database', function (assert) {
+test('setup database', function (assert) {
   db.setup().then(assert.end, assert.end)
 })
 
-tape('produces expected table name', function (assert) {
+test('produces expected table name', function (assert) {
   Promise
   class TestFoo {
   }
@@ -25,6 +25,6 @@ tape('produces expected table name', function (assert) {
   .catch(assert.end)
 })
 
-tape('drop database', function (assert) {
+test('drop database', function (assert) {
   db.teardown().then(assert.end, assert.end)
 })

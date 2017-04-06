@@ -1,7 +1,7 @@
 'use strict'
 
 const Promise = require('bluebird')
-const tape = require('tape')
+const test = require('tap').test
 const util = require('util')
 
 const ormnomnom = require('..')
@@ -42,11 +42,11 @@ const testData = [
   {kind: RefObjects, frob_id: 3, val: 0}
 ]
 
-tape('setup database', function (assert) {
+test('setup database', function (assert) {
   db.setup().then(assert.end, assert.end)
 })
 
-tape('create schema', function (assert) {
+test('create schema', function (assert) {
   const frobs = db.schema`
     CREATE TABLE frobnicators (
       id serial primary key,
@@ -210,12 +210,12 @@ const filterTests = [{
   expect: [2]
 }]
 
-filterTests.forEach(test => {
-  tape('test of ' + JSON.stringify(test.query._filter), assert => {
-    test.query.valuesList('id').then(ids => {
-      assert.deepEqual(ids, test.expect)
+filterTests.forEach(scenario => {
+  test('test of ' + JSON.stringify(scenario.query._filter), assert => {
+    scenario.query.valuesList('id').then(ids => {
+      assert.deepEqual(ids, scenario.expect)
     }, err => {
-      return test.query.sql.then(sql => {
+      return scenario.query.sql.then(sql => {
         throw new Error(sql + '\n' + err.message)
       })
     })
@@ -225,7 +225,7 @@ filterTests.forEach(test => {
   })
 })
 
-tape('test invalid fk filter: not a model', function (assert) {
+test('test invalid fk filter: not a model', function (assert) {
   class Ref {
     constructor (props) {
       util._extend(this, props)
@@ -248,7 +248,7 @@ tape('test invalid fk filter: not a model', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-tape('test invalid fk filter: not a fk', function (assert) {
+test('test invalid fk filter: not a fk', function (assert) {
   RefObjects.filter({'val.id': 3}).then(_ => {
     throw new Error('expected error')
   }, err => {
@@ -256,13 +256,13 @@ tape('test invalid fk filter: not a fk', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-tape('test order + count', function (assert) {
+test('test order + count', function (assert) {
   FrobnicatorObjects.all().order('val').count().then(cnt => {
     assert.ok('should have succeeded.')
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-tape('test filter by foreign instance', function (assert) {
+test('test filter by foreign instance', function (assert) {
   var getFrob = FrobnicatorObjects.get({name: 'Gary busey'})
   var getRefs = getFrob.then(frob => {
     return RefObjects.filter({frob}).valuesList('id')
@@ -272,7 +272,7 @@ tape('test filter by foreign instance', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-tape('test filter by OR', function (assert) {
+test('test filter by OR', function (assert) {
   var getSQL = FrobnicatorObjects.filter([{
     name: 'Gary busey'
   }, {
@@ -294,7 +294,7 @@ tape('test filter by OR', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-tape('test filter by OR+promise', function (assert) {
+test('test filter by OR+promise', function (assert) {
   var getSQL = FrobnicatorObjects.filter([{
     name: Promise.resolve('Gary busey')
   }, {
@@ -316,7 +316,7 @@ tape('test filter by OR+promise', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-tape('test filter by foreign promise', function (assert) {
+test('test filter by foreign promise', function (assert) {
   var getRefs = RefObjects.filter({
     frob: FrobnicatorObjects.get({name: 'Gary busey'})
   }).valuesList('id')
@@ -325,6 +325,14 @@ tape('test filter by foreign promise', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-tape('drop database', function (assert) {
+test('test :in on empty array', assert => {
+  const getRefs = RefObjects.filter({
+    'id:in': []
+  })
+
+  return getRefs
+})
+
+test('drop database', function (assert) {
   db.teardown().then(assert.end, assert.end)
 })

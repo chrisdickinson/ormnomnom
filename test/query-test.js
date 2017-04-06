@@ -1,7 +1,7 @@
 'use strict'
 
 const Promise = require('bluebird')
-const tape = require('tape')
+const test = require('tap').test
 
 const ormnomnom = require('..')
 const db = require('./db.js')
@@ -32,11 +32,11 @@ var NodeObjects = ormnomnom(Node, {
   val: ormnomnom.joi.number()
 })
 
-tape('setup database', function (assert) {
+test('setup database', function (assert) {
   db.setup().then(assert.end, assert.end)
 })
 
-tape('create schema', function (assert) {
+test('create schema', function (assert) {
   const nodes = db.schema`
     CREATE TABLE nodes (
       id serial primary key,
@@ -57,7 +57,7 @@ tape('create schema', function (assert) {
     .catch(assert.end)
 })
 
-tape('test insert', function (assert) {
+test('test insert', function (assert) {
   NodeObjects.create({
     name: 'hello world',
     val: 3
@@ -83,7 +83,7 @@ tape('test insert', function (assert) {
   .catch(assert.end)
 })
 
-tape('test update (none affected)', function (assert) {
+test('test update (none affected)', function (assert) {
   NodeObjects
     .filter({'val:gt': 3})
     .update({val: 10, name: 'gary busey'})
@@ -106,7 +106,7 @@ tape('test update (none affected)', function (assert) {
   .catch(assert.end)
 })
 
-tape('test update (one affected)', function (assert) {
+test('test update (one affected)', function (assert) {
   NodeObjects
     .filter({'val': 3})
     .update({val: 10, name: 'gary busey'})
@@ -129,7 +129,7 @@ tape('test update (one affected)', function (assert) {
   .catch(assert.end)
 })
 
-tape('test update (one affected, with join)', function (assert) {
+test('test update (one affected, with join)', function (assert) {
   RefObjects.create({val: 0, node: NodeObjects.get({name: 'gary busey'})})
     .then(() => {
       const subquery = RefObjects
@@ -156,7 +156,7 @@ tape('test update (one affected, with join)', function (assert) {
   .catch(assert.end)
 })
 
-tape('test delete', function (assert) {
+test('test delete', function (assert) {
   NodeObjects
     .delete()
     .then(xs => {
@@ -174,7 +174,7 @@ tape('test delete', function (assert) {
   .catch(assert.end)
 })
 
-tape('test nested insert', function (assert) {
+test('test nested insert', function (assert) {
   const createRef = RefObjects.create({
     val: 10,
     node: NodeObjects.create({
@@ -195,7 +195,7 @@ tape('test nested insert', function (assert) {
   .catch(assert.end)
 })
 
-tape('test simple select', function (assert) {
+test('test simple select', function (assert) {
   RefObjects.create({
     val: 300,
     node: NodeObjects.create({
@@ -214,7 +214,7 @@ tape('test simple select', function (assert) {
   .catch(assert.end)
 })
 
-tape('test values select', function (assert) {
+test('test values select', function (assert) {
   RefObjects.filter({'node.name:endsWith': 'busey'}).values('node_id').then(xs => {
     assert.deepEqual(xs, [{
       node_id: 2
@@ -228,7 +228,7 @@ tape('test values select', function (assert) {
   .catch(assert.end)
 })
 
-tape('test deep values select', function (assert) {
+test('test deep values select', function (assert) {
   RefObjects.filter({'node.name:endsWith': 'busey'}).values(['node.name', 'node_id']).then(xs => {
     assert.deepEqual(xs, [{
       node: {name: 'jake busey'},
@@ -244,7 +244,7 @@ tape('test deep values select', function (assert) {
   .catch(assert.end)
 })
 
-tape('test "in query" optimization', function (assert) {
+test('test "in query" optimization', function (assert) {
   RefObjects.filter({
     'node_id:in': NodeObjects.filter({name: 'gary busey'}).valuesList('id')
   }).sql.then(sql => {
@@ -253,7 +253,7 @@ tape('test "in query" optimization', function (assert) {
   })
 })
 
-tape('test "in query" optimization w/prepended value', function (assert) {
+test('test "in query" optimization w/prepended value', function (assert) {
   RefObjects.filter({
     'node.name': 'squidward',
     'node_id:in': NodeObjects.filter({name: 'gary busey'}).valuesList('id')
@@ -263,7 +263,7 @@ tape('test "in query" optimization w/prepended value', function (assert) {
   })
 })
 
-tape('test values list', function (assert) {
+test('test values list', function (assert) {
   RefObjects.filter({'node.name:endsWith': 'busey'}).valuesList(['node_id', 'node.val']).then(xs => {
     assert.deepEqual(xs, [2, 100, 3, -100])
   })
@@ -272,7 +272,7 @@ tape('test values list', function (assert) {
   .catch(assert.end)
 })
 
-tape('test count', function (assert) {
+test('test count', function (assert) {
   NodeObjects.filter({'val:gt': 10}).count().then(function (xs) {
     assert.equal(xs, '1')
   })
@@ -281,7 +281,7 @@ tape('test count', function (assert) {
   .catch(assert.end)
 })
 
-tape('test getOrCreate already exists', function (assert) {
+test('test getOrCreate already exists', function (assert) {
   NodeObjects.getOrCreate({name: 'jake busey', val: 100}).spread((created, xs) => {
     assert.equal(created, false)
     assert.equal(xs.name, 'jake busey')
@@ -291,7 +291,7 @@ tape('test getOrCreate already exists', function (assert) {
   .catch(assert.end)
 })
 
-tape('test getOrCreate does not exist', function (assert) {
+test('test getOrCreate does not exist', function (assert) {
   NodeObjects.getOrCreate({name: 'johnny five', val: 100}).spread((created, xs) => {
     assert.equal(created, true)
     assert.equal(xs.name, 'johnny five')
@@ -301,7 +301,7 @@ tape('test getOrCreate does not exist', function (assert) {
   .catch(assert.end)
 })
 
-tape('test getOrCreate multiple objects returned', function (assert) {
+test('test getOrCreate multiple objects returned', function (assert) {
   var cloneBusey = NodeObjects.create({
     name: 'jake busey',
     val: 0xdeadbeef
@@ -317,7 +317,7 @@ tape('test getOrCreate multiple objects returned', function (assert) {
   .catch(assert.end)
 })
 
-tape('test get fails on multiple objects returned', function (assert) {
+test('test get fails on multiple objects returned', function (assert) {
   NodeObjects.get({'name:contains': 'busey'}).catch(err => {
     assert.equal(err.constructor, NodeObjects.MultipleObjectsReturned)
     assert.equal(err.message, 'Multiple Node objects returned')
@@ -328,7 +328,7 @@ tape('test get fails on multiple objects returned', function (assert) {
   .catch(assert.end)
 })
 
-tape('test get fails on zero objects returned', function (assert) {
+test('test get fails on zero objects returned', function (assert) {
   NodeObjects.get({'name': 'ford prefect'})
   .catch(NodeObjects.NotFound, err => {
     assert.equal(err.message, 'Node not found')
@@ -339,7 +339,7 @@ tape('test get fails on zero objects returned', function (assert) {
   .catch(assert.end)
 })
 
-tape('test reverse relation', function (assert) {
+test('test reverse relation', function (assert) {
   NodeObjects.refsSetFor(
     NodeObjects.get({name: 'gary busey'})
   ).then(xs => {
@@ -351,7 +351,7 @@ tape('test reverse relation', function (assert) {
   .catch(assert.end)
 })
 
-tape('test reverse query', function (assert) {
+test('test reverse query', function (assert) {
   NodeObjects.filter({'refs.val:gt': 0}).then(xs => {
     assert.equal(xs.length, 2)
   })
@@ -360,7 +360,7 @@ tape('test reverse query', function (assert) {
   .catch(assert.end)
 })
 
-tape('test bulk insert', function (assert) {
+test('test bulk insert', function (assert) {
   const bulkInsert = NodeObjects.create([{
     val: 100,
     name: 'jake busey'
@@ -381,6 +381,6 @@ tape('test bulk insert', function (assert) {
   .catch(assert.end)
 })
 
-tape('drop database', function (assert) {
+test('drop database', function (assert) {
   db.teardown().then(assert.end, assert.end)
 })
