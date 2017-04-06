@@ -26,7 +26,7 @@ const FrobnicatorObjects = ormnomnom(Frobnicator, {
 })
 
 const RefObjects = ormnomnom(Ref, {
-  'id': ormnomnom.joi.number(),
+  'id': ormnomnom.joi.number().required(),
   'frob': ormnomnom.fk(Frobnicator),
   'val': ormnomnom.joi.number().required()
 })
@@ -330,7 +330,10 @@ test('test :in on empty array', assert => {
     'id:in': []
   })
 
-  return getRefs
+  return getRefs.then().catch(err => {
+    assert.fail('did not expect err')
+    assert.fail(err)
+  })
 })
 
 test('drop database', function (assert) {
