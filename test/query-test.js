@@ -21,6 +21,18 @@ class Ref {
     this.val = props.val
   }
 }
+class Farout {
+  constructor (props) {
+    this.id = props.id
+    this.ref = props.ref
+    this.ref_id = props.ref_id
+  }
+}
+
+const FaroutObjects = ormnomnom(Farout, {
+  id: ormnomnom.joi.number(),
+  ref: ormnomnom.fk(Ref, {nullable: true})
+})
 const RefObjects = ormnomnom(Ref, {
   id: ormnomnom.joi.number(),
   node: ormnomnom.fk(Node),
@@ -51,14 +63,20 @@ test('create schema', function (assert) {
       val real
     );
   `)
-  refs
+  const farouts = refs.then(_ => db.schema`
+    CREATE TABLE farouts (
+      id serial primary key,
+      ref_id integer default null references "refs" ("id") on delete cascade
+    );
+  `)
+  farouts
     .return(null)
     .then(assert.end)
     .catch(assert.end)
 })
 
-test('test insert', function (assert) {
-  NodeObjects.create({
+test('test insert', assert => {
+  return NodeObjects.create({
     name: 'hello world',
     val: 3
   }).then(xs => {
@@ -78,13 +96,10 @@ test('test insert', function (assert) {
       val: 3
     }], 'independently verify presence in db')
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
-test('test update (none affected)', function (assert) {
-  NodeObjects
+test('test update (none affected)', assert => {
+  return NodeObjects
     .filter({'val:gt': 3})
     .update({val: 10, name: 'gary busey'})
     .then(xs => {
@@ -101,13 +116,10 @@ test('test update (none affected)', function (assert) {
         val: 3
       }], 'independently verify presence in db')
     })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
-test('test update (one affected)', function (assert) {
-  NodeObjects
+test('test update (one affected)', assert => {
+  return NodeObjects
     .filter({'val': 3})
     .update({val: 10, name: 'gary busey'})
     .then(xs => {
@@ -124,13 +136,10 @@ test('test update (one affected)', function (assert) {
         val: 10
       }], 'independently verify presence in db')
     })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test update (one affected, with join)', function (assert) {
-  RefObjects.create({val: 0, node: NodeObjects.get({name: 'gary busey'})})
+  return RefObjects.create({val: 0, node: NodeObjects.get({name: 'gary busey'})})
     .then(() => {
       const subquery = RefObjects
         .filter({'node.val': 10})
@@ -151,13 +160,10 @@ test('test update (one affected, with join)', function (assert) {
         val: 1000
       }], 'independently verify presence in db')
     })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test delete', function (assert) {
-  NodeObjects
+  return NodeObjects
     .delete()
     .then(xs => {
       assert.deepEqual(xs, 1)
@@ -169,9 +175,6 @@ test('test delete', function (assert) {
     }).then(results => {
       assert.deepEqual(results.rows, [], 'independently verify absence in db')
     })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test nested insert', function (assert) {
@@ -183,20 +186,17 @@ test('test nested insert', function (assert) {
     })
   })
 
-  createRef
+  return createRef
     .then(ref => {
       assert.equal(ref.node.val, 100)
       assert.equal(ref.node.name, 'jake busey')
       assert.equal(ref.node_id, ref.node.id)
       assert.equal(ref.val, 10)
     })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test simple select', function (assert) {
-  RefObjects.create({
+  return RefObjects.create({
     val: 300,
     node: NodeObjects.create({
       name: 'gary busey',
@@ -209,13 +209,10 @@ test('test simple select', function (assert) {
       assert.equal(xs[0].val, 10)
     })
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test values select', function (assert) {
-  RefObjects.filter({'node.name:endsWith': 'busey'}).values('node_id').then(xs => {
+  return RefObjects.filter({'node.name:endsWith': 'busey'}).values('node_id').then(xs => {
     assert.deepEqual(xs, [{
       node_id: 2
     }, {
@@ -223,13 +220,10 @@ test('test values select', function (assert) {
     }])
     assert.ok(!(xs[0] instanceof Ref), 'should be plain objects')
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test deep values select', function (assert) {
-  RefObjects.filter({'node.name:endsWith': 'busey'}).values(['node.name', 'node_id']).then(xs => {
+  return RefObjects.filter({'node.name:endsWith': 'busey'}).values(['node.name', 'node_id']).then(xs => {
     assert.deepEqual(xs, [{
       node: {name: 'jake busey'},
       node_id: 2
@@ -239,66 +233,49 @@ test('test deep values select', function (assert) {
     }])
     assert.ok(!(xs[0] instanceof Ref), 'should be plain objects')
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test "in query" optimization', function (assert) {
-  RefObjects.filter({
+  return RefObjects.filter({
     'node_id:in': NodeObjects.filter({name: 'gary busey'}).valuesList('id')
   }).sql.then(sql => {
-    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT "refs"."id" AS "refs.id", "refs"."node_id" AS "refs.node_id", "refs"."val" AS "refs.val" FROM "refs" "refs"  WHERE "refs"."node_id" IN (SELECT "nodes"."id" AS "nodes.id" FROM "nodes" "nodes"  WHERE "nodes"."name" = $1  LIMIT ALL OFFSET 0)  LIMIT ALL OFFSET 0`)
-    assert.end()
+    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT "refs"."id" AS "refs.id", "refs"."node_id" AS "refs.node_id", "refs"."val" AS "refs.val" FROM "refs" "refs"  WHERE "refs"."node_id" IN (SELECT "nodes"."id" AS "nodes.id" FROM "nodes" "nodes"  WHERE "nodes"."name" = $1)`)
   })
 })
 
 test('test "in query" optimization w/prepended value', function (assert) {
-  RefObjects.filter({
+  return RefObjects.filter({
     'node.name': 'squidward',
     'node_id:in': NodeObjects.filter({name: 'gary busey'}).valuesList('id')
   }).sql.then(sql => {
-    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT "refs"."id" AS "refs.id", "refs"."node_id" AS "refs.node_id", "refs"."val" AS "refs.val", "nodes"."id" AS "refs.node.id", "nodes"."name" AS "refs.node.name", "nodes"."val" AS "refs.node.val" FROM "refs" "refs" LEFT  JOIN "nodes" "nodes" ON ( "refs"."node_id" = "nodes"."id" ) WHERE ("nodes"."name" = $1 AND "refs"."node_id" IN (SELECT "nodes"."id" AS "nodes.id" FROM "nodes" "nodes"  WHERE "nodes"."name" = $2  LIMIT ALL OFFSET 0))  LIMIT ALL OFFSET 0`)
-    assert.end()
+    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT "refs"."id" AS "refs.id", "refs"."node_id" AS "refs.node_id", "refs"."val" AS "refs.val", "nodes"."id" AS "refs.node.id", "nodes"."name" AS "refs.node.name", "nodes"."val" AS "refs.node.val" FROM "refs" "refs" LEFT  JOIN "nodes" "nodes" ON ( "refs"."node_id" = "nodes"."id" ) WHERE ("nodes"."name" = $1 AND "refs"."node_id" IN (SELECT "nodes"."id" AS "nodes.id" FROM "nodes" "nodes"  WHERE "nodes"."name" = $2))`)
   })
 })
 
 test('test values list', function (assert) {
-  RefObjects.filter({'node.name:endsWith': 'busey'}).valuesList(['node_id', 'node.val']).then(xs => {
+  return RefObjects.filter({'node.name:endsWith': 'busey'}).valuesList(['node_id', 'node.val']).then(xs => {
     assert.deepEqual(xs, [2, 100, 3, -100])
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test count', function (assert) {
-  NodeObjects.filter({'val:gt': 10}).count().then(function (xs) {
+  return NodeObjects.filter({'val:gt': 10}).count().then(function (xs) {
     assert.equal(xs, '1')
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test getOrCreate already exists', function (assert) {
-  NodeObjects.getOrCreate({name: 'jake busey', val: 100}).spread((created, xs) => {
+  return NodeObjects.getOrCreate({name: 'jake busey', val: 100}).spread((created, xs) => {
     assert.equal(created, false)
     assert.equal(xs.name, 'jake busey')
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test getOrCreate does not exist', function (assert) {
-  NodeObjects.getOrCreate({name: 'johnny five', val: 100}).spread((created, xs) => {
+  return NodeObjects.getOrCreate({name: 'johnny five', val: 100}).spread((created, xs) => {
     assert.equal(created, true)
     assert.equal(xs.name, 'johnny five')
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test getOrCreate multiple objects returned', function (assert) {
@@ -307,57 +284,42 @@ test('test getOrCreate multiple objects returned', function (assert) {
     val: 0xdeadbeef
   })
 
-  NodeObjects.getOrCreate({name: cloneBusey.get('name')}).then(_ => {
+  return NodeObjects.getOrCreate({name: cloneBusey.get('name')}).then(_ => {
     throw new Error('should throw exception')
   }, err => {
     assert.equal(err.constructor, NodeObjects.MultipleObjectsReturned)
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test get fails on multiple objects returned', function (assert) {
-  NodeObjects.get({'name:contains': 'busey'}).catch(err => {
+  return NodeObjects.get({'name:contains': 'busey'}).catch(err => {
     assert.equal(err.constructor, NodeObjects.MultipleObjectsReturned)
     assert.equal(err.message, 'Multiple Node objects returned')
     assert.ok(err instanceof ormnomnom.MultipleObjectsReturned)
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test get fails on zero objects returned', function (assert) {
-  NodeObjects.get({'name': 'ford prefect'})
+  return NodeObjects.get({'name': 'ford prefect'})
   .catch(NodeObjects.NotFound, err => {
     assert.equal(err.message, 'Node not found')
     assert.ok(err instanceof ormnomnom.NotFound)
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test reverse relation', function (assert) {
-  NodeObjects.refsSetFor(
+  return NodeObjects.refsSetFor(
     NodeObjects.get({name: 'gary busey'})
   ).then(xs => {
     assert.equal(xs.length, 1)
     assert.equal(xs[0].val, 300)
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test reverse query', function (assert) {
-  NodeObjects.filter({'refs.val:gt': 0}).then(xs => {
+  return NodeObjects.filter({'refs.val:gt': 0}).then(xs => {
     assert.equal(xs.length, 2)
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('test bulk insert', function (assert) {
@@ -369,16 +331,200 @@ test('test bulk insert', function (assert) {
     name: 'gerald busey'
   }])
 
-  bulkInsert
+  return bulkInsert
     .then(ref => {
       assert.equal(ref[0].val, 100)
       assert.equal(ref[0].name, 'jake busey')
       assert.equal(ref[1].val, 200)
       assert.equal(ref[1].name, 'gerald busey')
     })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
+})
+
+test('test group (no column specified)', assert => {
+  const getNode = NodeObjects.create({
+    val: 10,
+    name: 'goof'
+  })
+
+  const getRefs = RefObjects.create(Array.from(Array(10)).map((xs, idx) => {
+    return {
+      node: getNode,
+      val: idx
+    }
+  }))
+
+  return getRefs.then(refs => {
+    return NodeObjects.filter({
+      id: getNode.get('id'),
+      'refs.id:isNull': false
+    }).group().annotate({
+      nerds (ref) {
+        return `array_agg(${ref('refs.val')})`
+      }
+    }).values(['nerds'])
+  }).then(results => {
+    assert.deepEqual(results, [{
+      nerds: Array.from(Array(10)).map((xs, idx) => idx)
+    }])
+  })
+})
+
+test('test group (no column specified, nonvalues)', assert => {
+  const getNode = NodeObjects.create([{
+    val: 10,
+    name: 'cat'
+  }, {
+    val: 66044,
+    name: 'floof'
+  }])
+
+  const getRefs = RefObjects.create(Array.from(Array(10)).map((xs, idx) => {
+    return {
+      node: getNode.get(idx & 1),
+      val: idx
+    }
+  }))
+
+  return getRefs.then(refs => {
+    return NodeObjects.filter({
+      'name:in': ['cat', 'floof'],
+      'refs.id:isNull': false
+    }).group().annotate({
+      nerds (ref) {
+        return `array_agg(${ref('refs.val')})`
+      }
+    }).annotate({
+      howMuch (ref) {
+        return `sum(${ref('refs.val')})`
+      }
+    }).order('-howMuch')
+  }).then(results => {
+    assert.deepEqual(results, [
+      [{id: 10, name: 'floof', val: 66044}, {nerds: [1, 3, 5, 7, 9], howMuch: 25}],
+      [{id: 9, name: 'cat', val: 10}, {nerds: [0, 2, 4, 6, 8], howMuch: 20}]
+    ])
+  })
+})
+
+test('join delete', assert => {
+  const getNode = NodeObjects.create({
+    val: 10,
+    name: 'troop'
+  })
+
+  const getRefs = RefObjects.create(Array.from(Array(10)).map((xs, idx) => {
+    return {
+      node: getNode,
+      val: idx
+    }
+  })).then().map(xs => {
+    return FaroutObjects.create({ref: xs})
+  })
+
+  return getRefs.then(() => {
+    return FaroutObjects.filter({'ref.node.name': 'troop'}).delete()
+  }).then(() => {
+    return FaroutObjects.filter({'ref.node.name': 'troop'}).count()
+  }).then(result => {
+    assert.equal(Number(result), 0)
+  })
+})
+
+test('empty AND', assert => {
+  return Promise.all([
+    NodeObjects.filter({}).order('id'),
+    NodeObjects.all().order('id')
+  ]).spread((lhs, rhs) => {
+    assert.deepEqual(lhs, rhs)
+  })
+})
+
+test('empty OR', assert => {
+  return Promise.all([
+    NodeObjects.filter([]).order('id'),
+    NodeObjects.all().order('id')
+  ]).spread((lhs, rhs) => {
+    assert.deepEqual(lhs, rhs)
+  })
+})
+
+test('empty bulk INSERT', assert => {
+  return NodeObjects.create([]).then(result => {
+    assert.deepEqual(result, [])
+  })
+})
+
+test('create null fk', assert => {
+  return FaroutObjects.create({ref: null}).then(result => {
+    assert.equal(result.ref_id, null)
+  })
+})
+
+test('join over non-fk', assert => {
+  return NodeObjects.filter({'val.foo': 3}).then(() => {
+    throw new Error('unexpected')
+  }, err => {
+    assert.ok(/val/.test(err.message))
+  })
+})
+
+test('filter bad column', assert => {
+  return NodeObjects.filter({'dne': 3}).then(() => {
+    throw new Error('unexpected')
+  }, err => {
+    assert.ok(/"dne"/.test(err.message))
+  })
+})
+
+test('filter does not satisfy validator', assert => {
+  return NodeObjects.filter({'val': 'banana'}).then(() => {
+    throw new Error('did not expect to make it this far')
+  }, err => {
+    assert.ok(/"val"/.test(err.message))
+  })
+})
+
+test('exclude or', assert => {
+  return NodeObjects.exclude([{val: 10}, {val: 0}]).order('name').then(results => {
+    assert.deepEqual(results.map(xs => xs.name), [
+      'cat',
+      'goof',
+      'troop'
+    ])
+  })
+})
+
+test('error from postgres in row count', assert => {
+  return NodeObjects.filter({
+    val: -1,
+    'val:raw' () {
+      return 'not valid sql'
+    }
+  }).update({val: 1}).then(() => {
+    throw new Error('did not expect to make it this far')
+  }, err => {
+    assert.ok(/at or near/.test(err))
+  })
+})
+
+test('update ignores non-forward relations, non-ddl items', assert => {
+  // just shouldn't explode!
+  return NodeObjects.filter({val: -1}).update({val: 1, refs: 'goof', newman: 'jerry'})
+})
+
+test('update throws on bad data validation', assert => {
+  // just shouldn't explode!
+  return NodeObjects.filter([{val: -1}, {val: 100000}]).update({val: 'goof'}).then(() => {
+    throw new Error('did not expect to make it this far')
+  }, err => {
+    assert.ok(/"val".*must be a number/.test(err.message))
+  })
+})
+
+test('update allows OR', assert => {
+  return NodeObjects.filter([{val: 10}, {val: 100}]).update({val: 0}).then(results => {
+    assert.equal(Number(results), 6)
+  })
 })
 
 test('drop database', function (assert) {
