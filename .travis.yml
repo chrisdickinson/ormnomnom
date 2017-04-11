@@ -1,8 +1,9 @@
 sudo: false
 language: node_js
 node_js:
-  - "5.*"
-  - "4.2.*"
+  - "4"
+  - "6"
+  - "7"
 addons:
   postgresql: "9.4"
 before_script:

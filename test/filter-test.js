@@ -2,20 +2,19 @@
 
 const Promise = require('bluebird')
 const test = require('tap').test
-const util = require('util')
 
 const ormnomnom = require('..')
 const db = require('./db.js')
 
 class Frobnicator {
   constructor (props) {
-    util._extend(this, props)
+    Object.assign(this, props)
   }
 }
 
 class Ref {
   constructor (props) {
-    util._extend(this, props)
+    Object.assign(this, props)
   }
 }
 
@@ -228,7 +227,7 @@ filterTests.forEach(scenario => {
 test('test invalid fk filter: not a model', function (assert) {
   class Ref {
     constructor (props) {
-      util._extend(this, props)
+      Object.assign(this, props)
     }
   }
 

@@ -1,6 +1,5 @@
 'use strict'
 
-const Promise = require('bluebird')
 const test = require('tap').test
 
 const ormnomnom = require('..')
@@ -11,7 +10,6 @@ test('setup database', function (assert) {
 })
 
 test('produces expected table name', function (assert) {
-  Promise
   class TestFoo {
   }
   const objects = ormnomnom(TestFoo, {
@@ -23,6 +21,20 @@ test('produces expected table name', function (assert) {
   .return(null)
   .then(assert.end)
   .catch(assert.end)
+})
+
+test('throws if passed to two ormnomnoms', function (assert) {
+  class TestFoo {
+  }
+  ormnomnom(TestFoo, {
+    id: ormnomnom.joi.number()
+  })
+
+  assert.throws(() => {
+    ormnomnom(TestFoo)
+  })
+
+  assert.end()
 })
 
 test('drop database', function (assert) {
