@@ -8,7 +8,7 @@
     "update-coc": "weallbehave -o . && git add CODE_OF_CONDUCT.md && git commit -m 'docs(coc): updated CODE_OF_CONDUCT.md'",
     "prerelease": "npm run update-contrib && npm run update-coc",
     "release": "standard-version",
-    "test": "tap test/*-test.js",
+    "test": "TZ=UTC tap test/*-test.js",
     "posttest": "standard",
     "test-cov": "tap --cov test/*-test.js"
   },

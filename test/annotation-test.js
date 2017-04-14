@@ -1,6 +1,5 @@
 'use strict'
 
-const Promise = require('bluebird')
 const test = require('tap').test
 
 const orm = require('..')
@@ -130,9 +129,9 @@ test('aggregate count', assert => {
     ref => `array_agg(distinct to_char(${ref('date')}, 'YYYY-MM-DD'))`
   ).then(result => {
     assert.deepEqual(result.sort(), [
-      '2011-12-31',
-      '2013-10-18',
-      '2016-11-19'
+      '2012-01-01',
+      '2013-10-19',
+      '2016-11-20'
     ])
   })
 })
