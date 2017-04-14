@@ -206,20 +206,22 @@ following models for all examples below:
 const orm = require('ormnomnom')
 
 class Invoice {
-  constructor ({name, date}) {
+  constructor ({id, name, date}) {
+    this.id = id
     this.name = name
     this.date = date
   }
 }
 
 Invoice.objects = orm(Invoice, {
-  id: joi.number().required(),
-  name: joi.string(),
-  date: joi.date()
+  id: orm.joi.number().required(),
+  name: orm.joi.string(),
+  date: orm.joi.date()
 })
 
 class LineItem {
-  constructor ({subtotal, discount, invoice_id, invoice}) {
+  constructor ({id, subtotal, discount, invoice_id, invoice}) {
+    this.id = id
     this.subtotal = subtotal
     this.discount = discount
     this.invoice_id = invoice_id
@@ -228,8 +230,10 @@ class LineItem {
 }
 
 LineItem.objects = orm(LineItem, {
-  subtotal: joi.number(),
-  discount: joi.number()
+  id: orm.joi.number().required(),
+  invoice: orm.fk(Invoice),
+  subtotal: orm.joi.number(),
+  discount: orm.joi.number()
 })
 ```
 
@@ -259,10 +263,10 @@ by a query. For example, `QuerySet#count` is implemented as an aggregate. The on
 result of an aggregation query is the aggregated value itself.
 
 ```javascript
-Invoice.objects.all().aggregate({
-  'dates': ref => `array_agg(${ref('date')})`
-}).distinct('date').then(dates => {
-  // all available invoice dates
+Invoice.objects.all().aggregate(
+  ref => `array_agg(distinct ${ref('date')})`
+).then(dates => {
+  // what dates are available?
 })
 ```
 
@@ -271,7 +275,7 @@ especially when combined with **Aggregation**:
 
 ```javascript
 Invoice.objects.all().group().annotate({
-  lineItems: ref => `json_agg(${ref('invoices.*')})`
+  lineItems: ref => `json_agg(${ref('line_items.*')})`
 }).then(results => {
   results.map(([invoice, {lineItems}]) => {
     // invoice will be an Invoice object,
