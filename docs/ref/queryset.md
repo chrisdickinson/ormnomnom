@@ -197,5 +197,141 @@ bookDAO.filter({
 })
 ```
 
+## Aggregation, Grouping, and Annotation
+
+As of v3.0.0, ORMnomnom supports grouping, aggregates, and annotations. We'll use the
+following models for all examples below:
+
+```javascript
+const orm = require('ormnomnom')
+
+class Invoice {
+  constructor ({name, date}) {
+    this.name = name
+    this.date = date
+  }
+}
+
+Invoice.objects = orm(Invoice, {
+  id: joi.number().required(),
+  name: joi.string(),
+  date: joi.date()
+})
+
+class LineItem {
+  constructor ({subtotal, discount, invoice_id, invoice}) {
+    this.subtotal = subtotal
+    this.discount = discount
+    this.invoice_id = invoice_id
+    this.invoice = invoice
+  }
+}
+
+LineItem.objects = orm(LineItem, {
+  subtotal: joi.number(),
+  discount: joi.number()
+})
+```
+
+**Annotations** are extra data that you wish to include in your query, derived from
+the columns of the queryset. For example, you could "annotate" a query with the sum
+of two fields: 
+
+```javascript
+LineItem.objects.all().annotate({
+  total (ref) {
+    return `${ref('subtotal')} - ${ref('discount')}`
+  }
+}).then(results => {
+  results.map(([lineItem, annotation]) => {
+    console.log(
+      '%s - %s = %s',
+      lineItem.subtotal,
+      lineItem.discount,
+      annotation.total
+    )
+  })
+})
+```
+
+**Aggregations** are extra data derived across the entire set of rows represented
+by a query. For example, `QuerySet#count` is implemented as an aggregate. The only
+result of an aggregation query is the aggregated value itself.
+
+```javascript
+Invoice.objects.all().aggregate({
+  'dates': ref => `array_agg(${ref('date')})`
+}).distinct('date').then(dates => {
+  // all available invoice dates
+})
+```
+
+**Grouping** is handy for collapsing foreign relations into a set of items,
+especially when combined with **Aggregation**:
+
+```javascript
+Invoice.objects.all().group().annotate({
+  lineItems: ref => `json_agg(${ref('invoices.*')})`
+}).then(results => {
+  results.map(([invoice, {lineItems}]) => {
+    // invoice will be an Invoice object,
+    // lineItems will be an Array of Objects suitable for passing to `new LineItem`
+  })
+})
+```
+
+#### `QuerySet#aggregate(fn)`
+
+`fn` should be of the form:
+
+```javascript
+const fn = (ref, push) => {
+  return `count(*)`
+}
+```
+
+When called on a QuerySet, the queryset will be modified to select a single column, the
+result of the `aggregate` fn. Only the first row will be returned. 
+
+#### `QuerySet#annotate(obj)`
+
+`obj` should be of the form:
+
+```javascript
+const obj = {
+  nameOfField: (ref, push) {
+    return 'SQL()'
+  }
+}
+```
+
+Each key of `obj` should refer to an annotation function.
+
+Each annotation function should return a string and take two arguments,
+`ref` and `push`.
+
+- `ref` is used to refer to target columns: `ref('path.to.column')` or
+  `ref('fk.*')` both work.
+- `push` is used to pass values from JS to SQL, like `:raw`.
+
+Every key in `obj` will appear in the annotations of the queryset.
+
+If `values` or `valuesList` are given, the keys of annotation object will
+appear in-line if they are selected. Otherwise, the queryset will return an
+array of `[ModelInstance, Object]` for each matching row.
+
+#### `QuerySet#group(by)`
+
+Groups a query by a set of columns. If `by` is not given, it will be set to the
+primary key of the `QuerySet`'s target table, if any. `by` may be given as a
+string or an array of strings representing column lookups.
+
+When `group` is called: the columns selected by the queryset will be limited to:
+
+- If `valuesList` or `values` was called on the queryset, the column selection will
+  not be affected by calls to `group()`.
+- Otherwise, if `by` includes the primary key of the target table, all of the
+  target table's columns and annotations.
+
 [ref-dao-notfound]: ./dao.md#daomodelnotfound
 [ref-dao-multipleobjectsreturned]: ./dao.md#daomodelmultipleobjectsreturned
