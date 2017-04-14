@@ -1,6 +1,6 @@
 {
   "name": "ormnomnom",
-  "version": "2.8.0-0",
+  "version": "3.0.0",
   "description": "a lightweight orm to silence the orm-y beast",
   "main": "lib/ormnomnom.js",
   "scripts": {
