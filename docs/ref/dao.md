@@ -51,8 +51,14 @@ orm.setConnection(() => {
 
 ##### `orm.fk(Model[, options]) → ForeignKeyDefinition`
 
-Create a foreign key definition suitable for use in a [model
-schema][def-model-schema].
+Create a foreign key definition suitable for use in a [model schema][def-model-schema].
+
+If you wish to set a nullable foreign key definition, you can pass the option `nullable: true`,
+like this:
+
+```js
+orm.fk(Model, {nullable: true})
+```
 
 ##### `orm.joi`
 
