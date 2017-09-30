@@ -422,7 +422,7 @@ test('join delete', assert => {
   })
 
   return getRefs.then(() => {
-    return FaroutObjects.filter({'ref.node.name': 'troop'}).delete()
+    return FaroutObjects.delete({'ref.node.name': 'troop'})
   }).then(() => {
     return FaroutObjects.filter({'ref.node.name': 'troop'}).count()
   }).then(result => {
