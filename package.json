@@ -10,7 +10,7 @@
     "release": "standard-version",
     "test": "TZ=UTC tap test/*-test.js",
     "posttest": "standard",
-    "test-cov": "tap --cov test/*-test.js"
+    "test-cov": "TZ=UTC tap --cov test/*-test.js"
   },
   "repository": {
     "type": "git",
