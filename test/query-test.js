@@ -553,6 +553,12 @@ test('count() on annotated query', assert => {
   })
 })
 
+test('none() works as expected', assert => {
+  return NodeObjects.none().then(results => {
+    assert.equal(results.length, 0)
+  })
+})
+
 test('drop database', function (assert) {
   db.teardown().then(assert.end, assert.end)
 })
