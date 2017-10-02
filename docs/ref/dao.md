@@ -92,7 +92,7 @@ arguments: the `Model` of the originating `QuerySet`, and a `String`
 representing the query text.
 
 **NOTE**: If you want to log all queries (or a subset of them) for
-debugging purposes, see [`process.env.ORMNOMNOM_LOG_QUERIES`](#process-env-ormnomnom_log_queries).
+debugging purposes, see [`process.env.ORMNOMNOM_LOG_QUERIES`](#processenvormnomnom_log_queries).
 
 ```javascript
 orm.onQuery((Model, sql) => {
