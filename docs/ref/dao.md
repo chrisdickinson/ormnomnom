@@ -47,6 +47,25 @@ orm.setConnection(() => {
 })
 ```
 
+##### `process.env.ORMNOMNOM_LOG_QUERIES`
+
+If the `ORMNOMNOM_LOG_QUERIES` environment variable is set, queries
+will be logged to `stderr` automatically. If a comma (`,`) is present
+in `ORMNOMNOM_LOG_QUERIES`, the queries will be filtered by model
+name.
+
+
+```bash
+$ ORMNOMNOM_LOG_QUERIES=1 node path/to/our/program.js
+# ... all queries are logged
+$ ORMNOMNOM_LOG_QUERIES=Package,User node path/to/our/program.js
+# ... only queries from the Package and User models are logged
+```
+
+`ORMNOMNOM_TRACE_QUERIES` may also be used and will include a stack
+trace -- it's best to use this in conjunction with
+`BLUEBIRD_LONG_STACK_TRACES`.
+
 ##### `orm(Model, Schema[, options]) → DAO<Model>`
 
 ##### `orm.fk(Model[, options]) → ForeignKeyDefinition`
@@ -65,6 +84,27 @@ orm.fk(Model, {nullable: true})
 The [joi][def-joi] version used by this installation of ORMnomnom. For use
 when defining the [model schema][def-model-schema].
 
+##### `orm.onQuery(Function) → orm`
+
+Attach a listener for query events. Query event listeners will be
+called whenever a SQL command is issued. They will receive two
+arguments: the `Model` of the originating `QuerySet`, and a `String`
+representing the query text.
+
+**NOTE**: If you want to log all queries (or a subset of them) for
+debugging purposes, see [`process.env.ORMNOMNOM_LOG_QUERIES`](#process-env-ormnomnom_log_queries).
+
+```javascript
+orm.onQuery((Model, sql) => {
+  console.log(typeof Model) // function
+  console.log(sql) // "SELECT ..."
+})
+```
+
+##### `orm.removeQueryListener(Function) → orm`
+
+Remove a query event listener.
+
 ##### `DAO<Model>#getOrCreate(Object) → Promise<[Boolean, Model]>`
 
 Attempt to fetch and materialize a row using `Object` as a
@@ -76,6 +116,10 @@ The second element is a model instance.
 ##### `DAO<Model>#all() → QuerySet<Model>`
 
 [See `QuerySet#all`](./queryset.md#querysetmodelall).
+
+##### `DAO<Model>#none() → QuerySet<Model>`
+
+[See `QuerySet#none`](./queryset.md#querysetmodelnone).
 
 ##### `DAO<Model>#filter(Clause) → QuerySet<Model>`
 
@@ -97,7 +141,7 @@ The second element is a model instance.
 
 [See `QuerySet#update`](./queryset.md#querysetupdatedata).
 
-##### `DAO<Model>#delete() → Promise<Number>`
+##### `DAO<Model>#delete(promise) → Promise<Number>`
 
 [See `QuerySet#delete`](./queryset.md#querysetdelete).
 

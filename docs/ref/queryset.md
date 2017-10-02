@@ -10,9 +10,9 @@ and to consume a promise when returning a finite number of rows.
 
 * **Returns:** `QuerySet<Model>`
 
-Return a queryset representing all rows of the backing table. Creating an
-empty queryset can be useful in situations where one iteratively builds up
-a query by passing the queryset between several APIs.
+Return a queryset representing all rows of the backing table. Creating
+an `all()` queryset can be useful in situations where one iteratively
+builds up a query by passing the queryset between several APIs.
 
 **Example:**
 
@@ -27,6 +27,27 @@ myLetters = onlyTheBest(onlyConsonants(myLetters))
 // get the best letters from the first half of the alphabet
 var firstLetters = LetterObjects.all().slice(0, 13)
 firstLetters = onlyTheBest(firstLetters)
+```
+
+#### `QuerySet<Model>#none()`
+
+* **Returns:** `QuerySet<Model>`
+
+Return a queryset representing none of the rows of the backing table.
+This can be useful when you wish to modify an incoming queryset such
+that no rows will be returned.
+
+**Example:**
+
+```javascript
+function whatThingsCanThisUserSee (user, queryset) {
+  if (!user.isStaff()) {
+    // if they're not staff, eliminate all results from
+    // the queryset!
+    return queryset.none()
+  }
+  return queryset
+}
 ```
 
 #### `QuerySet#get(Clause)`
@@ -57,7 +78,7 @@ include only rows where `Clause` is false.
 
 #### `QuerySet#create(Data)`
 #### `QuerySet#update(Data)`
-#### `QuerySet#delete()`
+#### `QuerySet#delete(Clause)`
 #### `QuerySet#count()`
 
 #### `QuerySet#slice([start][, end])`
