@@ -18,36 +18,10 @@ In particular, ORMnomnom:
 If these things sound okay to you, or **you don't know what these things
 mean but this sounds fun anyway**, read on!
 
-## Getting Node
+## Prerequisites
 
-To make sure you have an appropriate version of Node installed, run the
-following in a shell:
-
-```bash
-$ node -v
-v4.2.1
-```
-
-If the first two characters (`v4`, above) are `4` or greater, congratulations!
-Otherwise, you will have to [upgrade Node](https://nodejs.org/).
-
-Once you have a working Node, make sure you have a working Postgres installation.
-
-## Getting Postgres
-
-There are a few good options here, depending on what OS you're running.
-
-* OSX:
-  * [Postgres.app](http://postgresapp.com/)
-  * [Homebrew](http://brew.sh/): `brew install postgres`
-* Linux:
-  * Debian/Ubuntu: `apt-get install postgresql-9.4`
-  * RHEL/CentOS: [YUM installation guide](https://wiki.postgresql.org/wiki/YUM_Installation)
-* Windows:
-  * [Scoop.sh](http://scoop.sh/): `scoop install postgresql`
-
-ORMnomnom generates fairly backwards compatible SQL, and should work from
-versions 9.1 up, **however** it is only tested on 9.4+.
+You'll need Node v4 or greater and a database, we recommend Postgres. 
+For help on getting those, check out this [doc](./prerequisites.md).
 
 ## Installing ORMnomnom in Your Project
 
