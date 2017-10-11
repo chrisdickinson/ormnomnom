@@ -57,8 +57,8 @@ class Octopus {
 }
 
 orm(Octopus, {
-  tableName: 'octopode',
-  primaryKey: 'isbn'
+  tableName: 'octopi',
+  primaryKey: 'name'
 })
 ```
 
