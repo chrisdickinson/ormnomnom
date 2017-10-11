@@ -29,12 +29,15 @@ In your shell, navigate to your project. In your project directory, run the
 following command:
 
 ```bash
-$ npm install ormnomnom pg --save
+$ npm install ormnomnom pg
 ```
 
 This will install `ormnomnom` and the [`pg`](https://npmjs.org/package/pg)
 client and record the dependencies in your project's `package.json`, if it
 exists.
+
+Note: For npm version 4 and below, you need to pass `--save` to the 
+install command to add the installed dependencies to your `package.json`.
 
 If you get any errors from this process, please [open an
 issue](https://github.com/chrisdickinson/ormnomnom/issues/new).
