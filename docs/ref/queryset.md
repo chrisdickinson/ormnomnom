@@ -2,9 +2,16 @@
 
 QuerySets represent the construction of a query. A queryset is immutable — all
 methods of the queryset will return a new queryset instance. The queryset will
-not *execute* until an **invoking** method is called. QuerySets return streams
-and promises — the rule of thumb is to consume a stream when returning N rows,
-and to consume a promise when returning a finite number of rows. 
+not *execute* until an **invoking** method is called. QuerySets return two
+potential things:
+
+  - streams
+  - promises
+
+The rule of thumb is:
+
+  - consume a stream when returning N rows,
+  - and consume a promise when returning a finite number of rows.
 
 #### `QuerySet<Model>#all()`
 
