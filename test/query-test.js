@@ -530,25 +530,20 @@ test('update allows OR', assert => {
 test('count() on annotated query', assert => {
   const root = NodeObjects.create({name: 'count-annotation'})
   const root2 = NodeObjects.create({name: 'count-annotation'})
-  const refs = Array.from(Array(10)).map((_, idx) => {
+  const root3 = NodeObjects.create({name: 'count-annotation'})
+  const refs = Array.from(Array(20)).map((_, idx) => {
     return RefObjects.create({node: root, val: idx})
   })
 
-  return Promise.all(refs.concat([root2])).then(() => {
+  return Promise.all(refs.concat([root2]).concat([root3])).then(() => {
     const qs = NodeObjects.filter({name: 'count-annotation'}).annotate({
       total (ref) {
         return `sum(${ref('refs.val')})`
       }
     }).group()
 
-    return qs.order('total').then(result => {
-      assert.equal(result.length, 2)
-      assert.equal(result[0][1].total, 45)
-      assert.equal(result[1][1].total, null)
-
-      return qs.count()
-    }).then(result => {
-      assert.equal(Number(result), 2)
+    return qs.order('total').count().then(result => {
+      assert.equal(Number(result), 3)
     })
   })
 })
