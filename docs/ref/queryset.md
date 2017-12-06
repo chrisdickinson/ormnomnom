@@ -2,9 +2,16 @@
 
 QuerySets represent the construction of a query. A queryset is immutable — all
 methods of the queryset will return a new queryset instance. The queryset will
-not *execute* until an **invoking** method is called. QuerySets return streams
-and promises — the rule of thumb is to consume a stream when returning N rows,
-and to consume a promise when returning a finite number of rows. 
+not *execute* until an **invoking** method is called. QuerySets return two
+potential things:
+
+  - streams
+  - promises
+
+The rule of thumb is:
+
+  - consume a stream when returning N rows,
+  - and consume a promise when returning a finite number of rows.
 
 #### `QuerySet<Model>#all()`
 
@@ -66,7 +73,7 @@ more than one rows are represented in the result.
 * **Returns:** `QuerySet<Model>`
 
 Return a new queryset representing a set of rows where `Clause` is true,
-in addition to all previously added `Clause`'s. See [`Clause`][ref-clause]
+in addition to all previously added `Clause`s. See [`Clause`](#clauses)
 for more info on the operations available in a where clause.
 
 #### `QuerySet#exclude(Clause)`
@@ -96,7 +103,7 @@ if no previous bounds exist.
   the fields by which to order the query.
 * **Returns:** `QuerySet<Model>`
 
-The column format accepted by `order()` is the same as [`Clause`][ref-clause],
+The column format accepted by `order()` is the same as [`Clause`](#clauses),
 with the addition of an optional prefixed `'-'` to indicate "order by column
 descending."
 
