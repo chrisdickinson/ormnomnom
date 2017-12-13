@@ -164,6 +164,7 @@ test('test update (one affected, with join)', function (assert) {
 
 test('test delete', function (assert) {
   return NodeObjects
+    .filter({ id: 1 })
     .delete()
     .then(xs => {
       assert.deepEqual(xs, 1)
