@@ -486,11 +486,12 @@ test('filter does not satisfy validator', assert => {
 })
 
 test('exclude or', assert => {
-  return NodeObjects.exclude([{val: 10}, {val: 0}]).order('name').then(results => {
+  return Node.objects.exclude([{val: 10}, {val: 0}]).order('name').then(results => {
     assert.deepEqual(results.map(xs => xs.name), [
-      'cat',
-      'goof',
-      'troop'
+      'Gary busey',
+      'HELLO',
+      'John Bonham',
+      'Mona Lisa'
     ])
   })
 })
