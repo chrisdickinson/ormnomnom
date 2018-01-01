@@ -3,7 +3,7 @@
 const { beforeEach, afterEach, teardown, test } = require('tap')
 
 const ormnomnom = require('..')
-const db = require('./db.js')
+const db = require('./db')
 
 db.setup(beforeEach, afterEach, teardown)
 

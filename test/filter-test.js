@@ -4,7 +4,7 @@ const Promise = require('bluebird')
 const { beforeEach, afterEach, teardown, test } = require('tap')
 
 const ormnomnom = require('..')
-const db = require('./db.js')
+const db = require('./db')
 const { Node, Ref } = require('./models')
 
 db.setup(beforeEach, afterEach, teardown)
