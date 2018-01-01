@@ -8,6 +8,7 @@
     "update-coc": "weallbehave -o . && git add CODE_OF_CONDUCT.md && git commit -m 'docs(coc): updated CODE_OF_CONDUCT.md'",
     "prerelease": "npm run update-contrib && npm run update-coc",
     "release": "standard-version",
+    "pretest": "TZ=UTC node -e 'require(\"./test/db\").createdb()'",
     "test": "TZ=UTC tap test/*-test.js",
     "posttest": "standard",
     "test-cov": "TZ=UTC tap --cov test/*-test.js"
@@ -38,9 +39,10 @@
   },
   "devDependencies": {
     "pg": "^6.1.5",
+    "pgtools": "^0.3.0",
     "standard": "^10.0.1",
     "standard-version": "^4.0.0",
-    "tap": "^10.3.2",
+    "tap": "^11.0.1",
     "weallbehave": "^1.0.3",
     "weallcontribute": "^1.0.8"
   }

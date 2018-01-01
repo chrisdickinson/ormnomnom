@@ -1,50 +1,159 @@
 'use strict'
 
 module.exports = {
+  createdb: createdb,
   setup: setup,
-  teardown: teardown,
   schema: schema,
   getConnection: getConnection
 }
 
-const spawn = require('child_process').spawn
 const Promise = require('bluebird')
 const ormnomnom = require('..')
+const models = require('./models')
 const pg = require('pg')
+const pgtools = require('pgtools')
 
-function setup (ready) {
-  return teardown().then(_ => new Promise(function (resolve, reject) {
-    spawn('createdb', [process.env.TEST_DB_NAME || 'onn_test']).on('exit', function () {
-      ormnomnom.setConnection(getConnection)
-      resolve()
-    })
-  }))
-}
+const TEST_DB_NAME = process.env.TEST_DB_NAME || 'onn_test'
+const client = new pg.Client({
+  database: TEST_DB_NAME
+})
+let connected = false
 
-function teardown (ready) {
-  return new Promise(function (resolve, reject) {
-    spawn('dropdb', [process.env.TEST_DB_NAME || 'onn_test']).on('exit', function () {
-      resolve()
+function createdb () {
+  ormnomnom.setConnection(getConnection)
+  return pgtools.dropdb({}, TEST_DB_NAME).catch(err => {
+    // ignore this error since it throws if the db doesn't exist
+    if (err.name !== 'invalid_catalog_name') {
+      throw err
+    }
+  }).then(_ => {
+    return pgtools.createdb({}, TEST_DB_NAME)
+  }).then(_ => {
+    return schema`
+      CREATE TABLE invoices (
+        id serial primary key,
+        name varchar(255),
+        date timestamp
+      );
+
+      CREATE TABLE line_items (
+        id serial primary key,
+        subtotal real,
+        discount real,
+        invoice_id integer default null references "invoices" ("id") on delete cascade
+      );
+
+      CREATE TABLE nodes (
+        id serial primary key,
+        name varchar(255),
+        val real
+      );
+
+      CREATE TABLE refs (
+        id serial primary key,
+        node_id integer not null references "nodes" ("id") on delete cascade,
+        val real
+      );
+
+      CREATE TABLE farouts (
+        id serial primary key,
+        ref_id integer default null references "refs" ("id") on delete cascade
+      );
+    `
+  }).then(_ => {
+    return models.Invoice.objects.create([{
+      name: 'a thing',
+      date: Date.UTC(2012, 0, 1)
+    }, {
+      name: 'another thing',
+      date: Date.UTC(2013, 9, 19)
+    }, {
+      name: 'great',
+      date: Date.UTC(2016, 10, 20)
+    }]).then().map(invoice => {
+      return models.LineItem.objects.create(Array.from(Array(10)).map((_, idx) => {
+        return {
+          invoice,
+          subtotal: 10 * (idx + 1),
+          discount: idx
+        }
+      }))
     })
+  }).then(_ => {
+    return models.Node.objects.create([{
+      name: 'HELLO',
+      val: 3
+    }, {
+      name: 'Gary busey',
+      val: -10
+    }, {
+      name: 'John Bonham',
+      val: 10000
+    }, {
+      name: 'Mona Lisa',
+      val: 100
+    }])
+  }).then(_ => {
+    return models.Node.objects.create({
+      val: 10
+    })
+  }).then(_ => {
+    return models.Ref.objects.create([{
+      node_id: 1,
+      val: 10
+    }, {
+      node_id: 2,
+      val: 0
+    }, {
+      node_id: 3,
+      val: 0
+    }])
+  }).then(_ => {
+    return getConnection().then(client => client.connection.end())
   })
 }
 
-function getConnection () {
-  return new Promise(function (resolve, reject) {
-    const client = new pg.Client({
-      host: 'localhost',
-      database: process.env.TEST_DB_NAME || 'onn_test'
+function setup (beforeEach, afterEach, teardown) {
+  beforeEach(function () {
+    return getConnection().then(client => {
+      return client.connection.query('BEGIN')
     })
-    client.connect()
-    client
-      .once('error', reject)
-      .once('connect', _ => {
-        client.removeListener('error', reject)
-        resolve({
-          connection: client,
-          release: _ => client.end()
-        })
+  })
+
+  afterEach(function () {
+    return getConnection().then(client => {
+      return client.connection.query('ROLLBACK')
+    })
+  })
+
+  teardown(function () {
+    return getConnection().then(client => {
+      return client.connection.end()
+    })
+  })
+
+  ormnomnom.setConnection(getConnection)
+}
+
+function getConnection (commit) {
+  return new Promise((resolve, reject) => {
+    if (connected) {
+      return resolve({
+        connection: client,
+        release: _ => {}
       })
+    }
+
+    client.connect()
+    client.once('error', reject)
+    client.once('connect', _ => {
+      client.removeListener('error', reject)
+      connected = true
+      resolve({
+        connection: client,
+        release: _ => {}
+      })
+    })
   })
 }
 
@@ -57,16 +166,7 @@ function schema (chunks) {
     out.push(chunks.shift())
   }
   const ddl = out.join('')
-  return getConnection().then(function (client) {
-    return new Promise((resolve, reject) => {
-      const query = client.connection.query(ddl)
-      query.once('error', err => {
-        reject(err)
-      })
-      query.once('end', function () {
-        client.release()
-        resolve()
-      })
-    })
+  return getConnection(true).then(function (client) {
+    return client.connection.query(ddl).then(_ => client.release())
   })
 }

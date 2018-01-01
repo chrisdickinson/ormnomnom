@@ -1,13 +1,11 @@
 'use strict'
 
-const test = require('tap').test
+const { beforeEach, afterEach, teardown, test } = require('tap')
 
 const ormnomnom = require('..')
 const db = require('./db.js')
 
-test('setup database', function (assert) {
-  db.setup().then(assert.end, assert.end)
-})
+db.setup(beforeEach, afterEach, teardown)
 
 test('produces expected table name', function (assert) {
   class TestFoo {
@@ -35,8 +33,4 @@ test('throws if passed to two ormnomnoms', function (assert) {
   })
 
   assert.end()
-})
-
-test('drop database', function (assert) {
-  db.teardown().then(assert.end, assert.end)
 })
