@@ -235,6 +235,30 @@ test('test distinct', function (assert) {
   })
 })
 
+test('test slice', function (assert) {
+  return Node.objects.all().slice(0, 1).order('id').then(xs => {
+    assert.deepEqual(xs, [{
+      id: 1,
+      name: 'HELLO',
+      val: 3
+    }])
+  })
+})
+
+test('test slice with offset', function (assert) {
+  return Node.objects.all().slice(1, 3).order('id').then(xs => {
+    assert.deepEqual(xs, [{
+      id: 2,
+      name: 'Gary busey',
+      val: -10
+    }, {
+      id: 3,
+      name: 'John Bonham',
+      val: 10000
+    }])
+  })
+})
+
 test('test "in query" optimization', function (assert) {
   return Ref.objects.filter({
     'node_id:in': Node.objects.filter({name: 'gary busey'}).valuesList('id')
