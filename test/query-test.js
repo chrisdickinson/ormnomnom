@@ -192,6 +192,17 @@ test('test deep values select', function (assert) {
   })
 })
 
+test('test distinct', function (assert) {
+  return Ref.objects.filter({ val: 0 }).distinct('val').then(xs => {
+    assert.deepEqual(xs, [{
+      node: null,
+      id: 2,
+      node_id: 2,
+      val: 0
+    }])
+  })
+})
+
 test('test "in query" optimization', function (assert) {
   return Ref.objects.filter({
     'node_id:in': Node.objects.filter({name: 'gary busey'}).valuesList('id')
