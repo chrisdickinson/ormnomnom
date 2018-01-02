@@ -83,8 +83,7 @@ test('test update (one affected, with join)', function (assert) {
         'select * from refs where val=1000'
       ).tap(() => conn.release())
     }).then(results => {
-      assert.deepEqual(results.rows, [{
-        id: 4,
+      assert.match(results.rows, [{
         node_id: 4,
         val: 1000
       }], 'independently verify presence in db')
@@ -341,9 +340,9 @@ test('test group (no column specified, nonvalues)', assert => {
       }
     }).order('-howMuch')
   }).then(results => {
-    assert.deepEqual(results, [
-      [{id: 15, name: 'floof', val: 66044}, {nerds: [1, 3, 5, 7, 9], howMuch: 25}],
-      [{id: 14, name: 'cat', val: 10}, {nerds: [0, 2, 4, 6, 8], howMuch: 20}]
+    assert.match(results, [
+      [{name: 'floof', val: 66044}, {nerds: [1, 3, 5, 7, 9], howMuch: 25}],
+      [{name: 'cat', val: 10}, {nerds: [0, 2, 4, 6, 8], howMuch: 20}]
     ])
   })
 })
