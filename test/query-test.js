@@ -360,7 +360,7 @@ test('test group (no column specified, nonvalues)', assert => {
       'refs.id:isNull': false
     }).group().annotate({
       nerds (ref) {
-        return `array_agg(${ref('refs.val')})`
+        return `array_agg(${ref('refs.val')} order by "refs"."val")`
       }
     }).annotate({
       howMuch (ref) {
