@@ -122,6 +122,23 @@ test('test delete', function (assert) {
     })
 })
 
+test('test delete with or', function (assert) {
+  return Node.objects
+    .delete([{ id: 1 }, { id: 2 }])
+    .then(xs => {
+      assert.deepEqual(xs, 2)
+      return db.getConnection()
+    }).then(conn => {
+      return Promise.promisify(conn.connection.query.bind(conn.connection))(
+        'select * from nodes'
+      ).tap(() => conn.release())
+    }).then(results => {
+      assert.deepEqual(results.rows.length, 3, 'verify one row is removed')
+      assert.notOk(results.rows.find(row => row.id === 1), 'verify node 1 is removed')
+      assert.notOk(results.rows.find(row => row.id === 2), 'verify node 2 is removed')
+    })
+})
+
 test('test nested insert', function (assert) {
   const createRef = Ref.objects.create({
     val: 10,
