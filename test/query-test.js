@@ -31,6 +31,38 @@ test('test insert', assert => {
   })
 })
 
+test('test insert (skips keys that arent columns)', function (assert) {
+  return Node.objects.create({
+    name: 'hello world',
+    val: 3,
+    bananas: true
+  }).then(xs => {
+    assert.ok(xs instanceof Node, 'xs is a Node')
+    assert.equal(xs.name, 'hello world')
+    assert.equal(xs.val, 3)
+    assert.notOk(xs.bananas)
+    return db.getConnection().then(conn => {
+      return Promise.promisify(conn.connection.query.bind(conn.connection))(
+        `select * from nodes where id=${xs.id}`
+      ).tap(() => conn.release())
+    }).then(results => {
+      assert.deepEqual(results.rows, [{
+        id: xs.id,
+        name: 'hello world',
+        val: 3
+      }], 'independently verify presence in db')
+    })
+  })
+})
+
+test('test insert errors when validation fails', function (assert) {
+  return Node.objects.create({
+    name: 'hello world'
+  }).catch(err => {
+    assert.equals(err.name, 'ValidationError')
+  })
+})
+
 test('test update (none affected)', assert => {
   return Node.objects
     .filter({'val:gt': 30000})
