@@ -257,6 +257,24 @@ test('test deep values select', function (assert) {
   })
 })
 
+test('test onQuery fires', function (assert) {
+  const eventFired = new Promise((resolve) => {
+    const listener = function (cls, sql) {
+      assert.equals(cls.name, 'Node')
+      ormnomnom.removeQueryListener(listener)
+      resolve()
+    }
+    ormnomnom.onQuery(listener)
+  })
+
+  return Promise.all([
+    eventFired,
+    Node.objects.filter({ id: 1 }).then(xs => {
+      assert.match(xs[0], { id: 1, name: 'HELLO', val: 3 })
+    })
+  ])
+})
+
 test('test distinct', function (assert) {
   return Ref.objects.filter({ val: 0 }).distinct('val').then(xs => {
     assert.deepEqual(xs, [{
