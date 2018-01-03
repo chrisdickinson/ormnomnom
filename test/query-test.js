@@ -235,6 +235,22 @@ test('test distinct', function (assert) {
   })
 })
 
+test('test distinct with default column', function (assert) {
+  return Ref.objects.filter({ val: 0 }).distinct().then(xs => {
+    assert.deepEqual(xs, [{
+      node: null,
+      id: 2,
+      node_id: 2,
+      val: 0
+    }, {
+      node: null,
+      id: 3,
+      node_id: 3,
+      val: 0
+    }])
+  })
+})
+
 test('test slice', function (assert) {
   return Node.objects.all().slice(0, 1).order('id').then(xs => {
     assert.deepEqual(xs, [{
@@ -255,6 +271,20 @@ test('test slice with offset', function (assert) {
       id: 3,
       name: 'John Bonham',
       val: 10000
+    }])
+  })
+})
+
+test('test slice with no end', function (assert) {
+  return Node.objects.all().slice(3).order('id').then(xs => {
+    assert.deepEqual(xs, [{
+      id: 4,
+      name: 'Mona Lisa',
+      val: 100
+    }, {
+      id: 5,
+      name: null,
+      val: 10
     }])
   })
 })
