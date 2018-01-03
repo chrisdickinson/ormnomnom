@@ -395,6 +395,26 @@ test('test bulk insert', function (assert) {
     })
 })
 
+test('test group', function (assert) {
+  return Ref.objects.create({
+    node_id: 2,
+    val: 5
+  }).then(_ => {
+    return Ref.objects.all().group('node_id').annotate({
+      highest (ref) {
+        return `max(${ref('val')})`
+      }
+    }).order('highest')
+  }).then(xs => {
+    assert.equals(xs.length, 3)
+    assert.match(xs, [
+      [{ node_id: 3 }, { highest: 0 }],
+      [{ node_id: 2 }, { highest: 5 }],
+      [{ node_id: 1 }, { highest: 10 }]
+    ])
+  })
+})
+
 test('test group (no column specified)', assert => {
   const getNode = Node.objects.create({
     val: 10,
