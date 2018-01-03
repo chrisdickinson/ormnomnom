@@ -238,6 +238,16 @@ test('test simple select', function (assert) {
   })
 })
 
+test('test select with or (with only one condition)', function (assert) {
+  return Node.objects.filter([{ id: 1 }]).then(xs => {
+    assert.deepEqual(xs, [{
+      id: 1,
+      name: 'HELLO',
+      val: 3
+    }])
+  })
+})
+
 test('test values select', function (assert) {
   return Ref.objects.filter({'node.name:endsWith': 'busey'}).values('node_id').then(xs => {
     assert.deepEqual(xs, [{
