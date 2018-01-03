@@ -122,6 +122,39 @@ test('test update (one affected, with join)', function (assert) {
     })
 })
 
+test('test update (all affected)', function (assert) {
+  return Node.objects.update({ val: 14 }).then(xs => {
+    assert.deepEqual(xs, 5)
+    return db.getConnection()
+  }).then(conn => {
+    return Promise.promisify(conn.connection.query.bind(conn.connection))(
+      'select * from nodes'
+    ).tap(() => conn.release())
+  }).then(results => {
+    assert.match(results.rows, [{
+      id: 1,
+      name: 'HELLO',
+      val: 14
+    }, {
+      id: 2,
+      name: 'Gary busey',
+      val: 14
+    }, {
+      id: 3,
+      name: 'John Bonham',
+      val: 14
+    }, {
+      id: 4,
+      name: 'Mona Lisa',
+      val: 14
+    }, {
+      id: 5,
+      name: null,
+      val: 14
+    }])
+  })
+})
+
 test('test filter with delete', function (assert) {
   return Node.objects
     .filter({ id: 1000 })
