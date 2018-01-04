@@ -269,3 +269,75 @@ test('test :in on empty array', assert => {
     assert.fail(err)
   })
 })
+
+test('test select with empty condition', function (assert) {
+  return Node.objects.filter().sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"')
+  })
+})
+
+test('test select with empty object as filter', function (assert) {
+  return Node.objects.filter({}).sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE 1=1')
+  })
+})
+
+test('test select with empty or', function (assert) {
+  return Node.objects.filter([]).sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE 1=1')
+  })
+})
+
+test('test select with or with single empty object', function (assert) {
+  return Node.objects.filter([{}]).sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE 1=1')
+  })
+})
+
+test('test select with or with two empty objects', function (assert) {
+  return Node.objects.filter([{}, {}]).sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE (1=1 OR 1=1)')
+  })
+})
+
+test('test select with or with one filter and one empty object', function (assert) {
+  return Node.objects.filter([{ id: 1 }, {}]).sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE ("nodes"."id" = $1 OR 1=1)')
+  })
+})
+
+test('test select with empty exclude', function (assert) {
+  return Node.objects.exclude().sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"')
+  })
+})
+
+test('test select with empty object as exclude', function (assert) {
+  return Node.objects.exclude({}).sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT 1=1')
+  })
+})
+
+test('test select with empty or as exclude', function (assert) {
+  return Node.objects.exclude([]).sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT 1=1')
+  })
+})
+
+test('test select with or with single empty object as exclude', function (assert) {
+  return Node.objects.exclude([{}]).sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT 1=1')
+  })
+})
+
+test('test select with or with two empty objects as exclude', function (assert) {
+  return Node.objects.exclude([{}, {}]).sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT (1=1 OR 1=1)')
+  })
+})
+
+test('test select with or with one filter and one empty object as exclude', function (assert) {
+  return Node.objects.exclude([{ id: 1 }, {}]).sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT ("nodes"."id" = $1 OR 1=1)')
+  })
+})
