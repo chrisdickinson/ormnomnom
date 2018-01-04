@@ -463,7 +463,7 @@ test('test getOrCreate does not exist', function (assert) {
 })
 
 test('test getOrCreate multiple objects returned', function (assert) {
-  var cloneBusey = Node.objects.create({
+  const cloneBusey = Node.objects.create({
     name: 'Gary busey',
     val: 0xdeadbeef
   })

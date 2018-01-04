@@ -197,8 +197,8 @@ test('test order + count', function (assert) {
 })
 
 test('test filter by foreign instance', function (assert) {
-  var getNode = Node.objects.get({name: 'Gary busey'})
-  var getRefs = getNode.then(node => {
+  const getNode = Node.objects.get({name: 'Gary busey'})
+  const getRefs = getNode.then(node => {
     return Ref.objects.filter({node}).valuesList('id')
   })
   getRefs.then(ids => {
@@ -207,7 +207,7 @@ test('test filter by foreign instance', function (assert) {
 })
 
 test('test filter by OR', function (assert) {
-  var getSQL = Node.objects.filter([{
+  const getSQL = Node.objects.filter([{
     name: 'Gary busey'
   }, {
     name: 'Jake busey'
@@ -229,7 +229,7 @@ test('test filter by OR', function (assert) {
 })
 
 test('test filter by OR+promise', function (assert) {
-  var getSQL = Node.objects.filter([{
+  const getSQL = Node.objects.filter([{
     name: Promise.resolve('Gary busey')
   }, {
     name: Promise.resolve('Jake busey')
@@ -251,7 +251,7 @@ test('test filter by OR+promise', function (assert) {
 })
 
 test('test filter by foreign promise', function (assert) {
-  var getRefs = Ref.objects.filter({
+  const getRefs = Ref.objects.filter({
     node: Node.objects.get({name: 'Gary busey'})
   }).valuesList('id')
   getRefs.then(ids => {
