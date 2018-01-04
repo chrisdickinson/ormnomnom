@@ -32,6 +32,43 @@ test('test insert', assert => {
   })
 })
 
+test('test bulk insert', function (assert) {
+  return Node.objects.create([{
+    name: 'one',
+    val: 1
+  }, {
+    name: 'two',
+    val: 2
+  }]).then(xs => {
+    assert.equals(xs.length, 2)
+    assert.match(xs, [{
+      name: 'one',
+      val: 1
+    }, {
+      name: 'two',
+      val: 2
+    }])
+  })
+})
+
+test('test bulk insert with differing columns', function (assert) {
+  return Node.objects.create([{
+    name: 'one',
+    val: 1
+  }, {
+    val: 2
+  }]).then(xs => {
+    assert.equals(xs.length, 2)
+    assert.match(xs, [{
+      name: 'one',
+      val: 1
+    }, {
+      name: null,
+      val: 2
+    }])
+  })
+})
+
 test('test insert (skips keys that arent columns)', function (assert) {
   return Node.objects.create({
     name: 'hello world',
