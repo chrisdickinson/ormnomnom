@@ -64,6 +64,16 @@ test('test insert errors when validation fails', function (assert) {
   })
 })
 
+test('test insert fails when primary key conflicts', function (assert) {
+  return Node.objects.create({
+    id: 1,
+    name: 'broken',
+    val: 100
+  }).catch(err => {
+    assert.equals(err.message, 'duplicate key value violates unique constraint "nodes_pkey"')
+  })
+})
+
 test('test update (none affected)', assert => {
   return Node.objects
     .filter({'val:gt': 30000})
