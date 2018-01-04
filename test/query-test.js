@@ -2,6 +2,7 @@
 
 const Promise = require('bluebird')
 const { beforeEach, afterEach, teardown, test } = require('tap')
+const { Writable } = require('stream')
 
 const ormnomnom = require('..')
 const { Node, Ref, Farout } = require('./models')
@@ -264,6 +265,27 @@ test('test deep values select', function (assert) {
       node_id: 2
     }])
     assert.ok(!(xs[0] instanceof Ref), 'should be plain objects')
+  })
+})
+
+test('test streaming select', function (assert) {
+  return new Promise((resolve, reject) => {
+    const receiver = new Writable({
+      write: function (chunk, _, callback) {
+        assert.deepEquals(chunk, {
+          id: 1,
+          name: 'HELLO',
+          val: 3
+        })
+        callback()
+      },
+      objectMode: true
+    })
+
+    receiver.on('error', reject)
+    receiver.on('finish', resolve)
+
+    Node.objects.filter({ id: 1 }).pipe(receiver)
   })
 })
 
