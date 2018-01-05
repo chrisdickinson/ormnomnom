@@ -144,7 +144,7 @@ const filterTests = [{
   expect: [2]
 }]
 
-filterTests.forEach(scenario => {
+for (const scenario of filterTests) {
   test('test of ' + JSON.stringify(scenario.query._filter), assert => {
     scenario.query.valuesList('id').then(ids => {
       assert.deepEqual(ids, scenario.expect)
@@ -157,7 +157,7 @@ filterTests.forEach(scenario => {
     .then(assert.end)
     .catch(assert.end)
   })
-})
+}
 
 test('test invalid fk filter: not a model', function (assert) {
   class Ref {
