@@ -591,6 +591,20 @@ test('test group (no annotations)', assert => {
   })
 })
 
+test('test group (annotation using push)', assert => {
+  return Ref.objects.all().group('node_id').annotate({
+    matches (ref, push) {
+      return `bool_and(${ref('val')} = ${push(10)})`
+    }
+  }).order('node_id').then(xs => {
+    assert.match(xs, [
+      [{ node_id: 1 }, { matches: true }],
+      [{ node_id: 2 }, { matches: false }],
+      [{ node_id: 3 }, { matches: false }]
+    ])
+  })
+})
+
 test('test group (no column specified)', assert => {
   const getNode = Node.objects.create({
     val: 10,
