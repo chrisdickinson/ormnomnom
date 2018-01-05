@@ -270,6 +270,16 @@ test('test :in on empty array', assert => {
   })
 })
 
+test('test chaining filters', assert => {
+  return Node.objects.filter({ id: 1 }).filter({ name: 'HELLO' }).then(xs => {
+    assert.deepEquals(xs, [{
+      id: 1,
+      name: 'HELLO',
+      val: 3
+    }])
+  })
+})
+
 test('test select with empty condition', assert => {
   return Node.objects.filter().sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"')
