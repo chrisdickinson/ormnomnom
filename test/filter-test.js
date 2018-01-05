@@ -146,16 +146,13 @@ const filterTests = [{
 
 for (const scenario of filterTests) {
   test('test of ' + JSON.stringify(scenario.query._filter), assert => {
-    scenario.query.valuesList('id').then(ids => {
+    return scenario.query.valuesList('id').then(ids => {
       assert.deepEqual(ids, scenario.expect)
     }, err => {
       return scenario.query.sql.then(sql => {
         throw new Error(sql + '\n' + err.message)
       })
     })
-    .return(null)
-    .then(assert.end)
-    .catch(assert.end)
   })
 }
 
@@ -175,25 +172,25 @@ test('test invalid fk filter: not a model', assert => {
     'val': ormnomnom.joi.number().required()
   })
 
-  RefObjects.filter({'node.id': 3}).then(_ => {
+  return RefObjects.filter({'node.id': 3}).then(_ => {
     throw new Error('expected error')
   }, err => {
     assert.equal(err.message, 'No DAO registered for FakeNode')
-  }).return(null).then(assert.end).catch(assert.end)
+  })
 })
 
 test('test invalid fk filter: not a fk', assert => {
-  Ref.objects.filter({'val.id': 3}).then(_ => {
+  return Ref.objects.filter({'val.id': 3}).then(_ => {
     throw new Error('expected error')
   }, err => {
     assert.equal(err.message, 'val is not a join-able column')
-  }).return(null).then(assert.end).catch(assert.end)
+  })
 })
 
 test('test order + count', assert => {
-  Node.objects.all().order('val').count().then(cnt => {
+  return Node.objects.all().order('val').count().then(cnt => {
     assert.ok('should have succeeded.')
-  }).return(null).then(assert.end).catch(assert.end)
+  })
 })
 
 test('test filter by foreign instance', assert => {
@@ -201,9 +198,9 @@ test('test filter by foreign instance', assert => {
   const getRefs = getNode.then(node => {
     return Ref.objects.filter({node}).valuesList('id')
   })
-  getRefs.then(ids => {
+  return getRefs.then(ids => {
     assert.deepEqual(ids, [2])
-  }).return(null).then(assert.end).catch(assert.end)
+  })
 })
 
 test('test filter by OR', assert => {
@@ -225,7 +222,7 @@ test('test filter by OR', assert => {
       'Gary busey',
       'Jake busey'
     ], raw.values)
-  }).return(null).then(assert.end).catch(assert.end)
+  })
 })
 
 test('test filter by OR+promise', assert => {
@@ -247,16 +244,16 @@ test('test filter by OR+promise', assert => {
       'Gary busey',
       'Jake busey'
     ], raw.values)
-  }).return(null).then(assert.end).catch(assert.end)
+  })
 })
 
 test('test filter by foreign promise', assert => {
   const getRefs = Ref.objects.filter({
     node: Node.objects.get({name: 'Gary busey'})
   }).valuesList('id')
-  getRefs.then(ids => {
+  return getRefs.then(ids => {
     assert.deepEqual(ids, [2])
-  }).return(null).then(assert.end).catch(assert.end)
+  })
 })
 
 test('test :in on empty array', assert => {
