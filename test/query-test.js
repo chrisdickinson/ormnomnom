@@ -32,6 +32,14 @@ test('test insert', assert => {
   })
 })
 
+test('test insert with falsey data', assert => {
+  return Farout.objects.create(null).then(xs => {
+    assert.match(xs, {
+      ref_id: null
+    })
+  })
+})
+
 test('test bulk insert', assert => {
   return Node.objects.create([{
     name: 'one',
@@ -65,6 +73,18 @@ test('test bulk insert with differing columns', assert => {
     }, {
       name: null,
       val: 2
+    }])
+  })
+})
+
+test('test bulk insert with falsey data', assert => {
+  return Farout.objects.create([{
+    ref_id: 1
+  }, null]).then(xs => {
+    assert.match(xs, [{
+      ref_id: 1
+    }, {
+      ref_id: null
     }])
   })
 })
