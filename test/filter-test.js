@@ -280,6 +280,12 @@ test('test chaining filters', assert => {
   })
 })
 
+test('test converts falsey filter to match all', assert => {
+  return Node.objects.filter([{ id: 1 }, null]).sql.then(xs => {
+    assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE ("nodes"."id" = $1 OR 1=1)')
+  })
+})
+
 test('test select with empty condition', assert => {
   return Node.objects.filter().sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"')
