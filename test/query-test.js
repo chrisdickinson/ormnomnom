@@ -147,6 +147,18 @@ test('test update (none affected)', assert => {
     })
 })
 
+test('test update with missing data', assert => {
+  return Node.objects.update().catch(err => {
+    assert.equals(err.message, 'Attempted update of Node object with no data')
+  })
+})
+
+test('test update', assert => {
+  return Node.objects.filter({ id: 1 }).update([{ name: 'janis joplin' }, null]).catch(err => {
+    assert.equals(err.message, 'Attempted update of Node object with no data')
+  })
+})
+
 test('test update (one affected)', assert => {
   return Node.objects
     .filter({'val': 3})
