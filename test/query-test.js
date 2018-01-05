@@ -577,6 +577,20 @@ test('test group', assert => {
   })
 })
 
+test('test group (no annotations)', assert => {
+  return Ref.objects.create({ node_id: 3, val: 5 }).then(_ => {
+    return Ref.objects.all().group('node_id').order('-node_id')
+  }).then(xs => {
+    assert.match(xs, [{
+      node_id: 3
+    }, {
+      node_id: 2
+    }, {
+      node_id: 1
+    }])
+  })
+})
+
 test('test group (no column specified)', assert => {
   const getNode = Node.objects.create({
     val: 10,
