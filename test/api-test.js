@@ -7,7 +7,7 @@ const db = require('./db')
 
 db.setup(beforeEach, afterEach, teardown)
 
-test('produces expected table name', function (assert) {
+test('produces expected table name', assert => {
   class TestFoo {
   }
   const objects = ormnomnom(TestFoo, {
@@ -21,7 +21,7 @@ test('produces expected table name', function (assert) {
   .catch(assert.end)
 })
 
-test('throws if passed to two ormnomnoms', function (assert) {
+test('throws if passed to two ormnomnoms', assert => {
   class TestFoo {
   }
   ormnomnom(TestFoo, {

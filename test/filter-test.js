@@ -159,7 +159,7 @@ for (const scenario of filterTests) {
   })
 }
 
-test('test invalid fk filter: not a model', function (assert) {
+test('test invalid fk filter: not a model', assert => {
   class Ref {
     constructor (props) {
       Object.assign(this, props)
@@ -182,7 +182,7 @@ test('test invalid fk filter: not a model', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-test('test invalid fk filter: not a fk', function (assert) {
+test('test invalid fk filter: not a fk', assert => {
   Ref.objects.filter({'val.id': 3}).then(_ => {
     throw new Error('expected error')
   }, err => {
@@ -190,13 +190,13 @@ test('test invalid fk filter: not a fk', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-test('test order + count', function (assert) {
+test('test order + count', assert => {
   Node.objects.all().order('val').count().then(cnt => {
     assert.ok('should have succeeded.')
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-test('test filter by foreign instance', function (assert) {
+test('test filter by foreign instance', assert => {
   const getNode = Node.objects.get({name: 'Gary busey'})
   const getRefs = getNode.then(node => {
     return Ref.objects.filter({node}).valuesList('id')
@@ -206,7 +206,7 @@ test('test filter by foreign instance', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-test('test filter by OR', function (assert) {
+test('test filter by OR', assert => {
   const getSQL = Node.objects.filter([{
     name: 'Gary busey'
   }, {
@@ -228,7 +228,7 @@ test('test filter by OR', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-test('test filter by OR+promise', function (assert) {
+test('test filter by OR+promise', assert => {
   const getSQL = Node.objects.filter([{
     name: Promise.resolve('Gary busey')
   }, {
@@ -250,7 +250,7 @@ test('test filter by OR+promise', function (assert) {
   }).return(null).then(assert.end).catch(assert.end)
 })
 
-test('test filter by foreign promise', function (assert) {
+test('test filter by foreign promise', assert => {
   const getRefs = Ref.objects.filter({
     node: Node.objects.get({name: 'Gary busey'})
   }).valuesList('id')
@@ -270,73 +270,73 @@ test('test :in on empty array', assert => {
   })
 })
 
-test('test select with empty condition', function (assert) {
+test('test select with empty condition', assert => {
   return Node.objects.filter().sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"')
   })
 })
 
-test('test select with empty object as filter', function (assert) {
+test('test select with empty object as filter', assert => {
   return Node.objects.filter({}).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE 1=1')
   })
 })
 
-test('test select with empty or', function (assert) {
+test('test select with empty or', assert => {
   return Node.objects.filter([]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE 1=1')
   })
 })
 
-test('test select with or with single empty object', function (assert) {
+test('test select with or with single empty object', assert => {
   return Node.objects.filter([{}]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE 1=1')
   })
 })
 
-test('test select with or with two empty objects', function (assert) {
+test('test select with or with two empty objects', assert => {
   return Node.objects.filter([{}, {}]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE (1=1 OR 1=1)')
   })
 })
 
-test('test select with or with one filter and one empty object', function (assert) {
+test('test select with or with one filter and one empty object', assert => {
   return Node.objects.filter([{ id: 1 }, {}]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE ("nodes"."id" = $1 OR 1=1)')
   })
 })
 
-test('test select with empty exclude', function (assert) {
+test('test select with empty exclude', assert => {
   return Node.objects.exclude().sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"')
   })
 })
 
-test('test select with empty object as exclude', function (assert) {
+test('test select with empty object as exclude', assert => {
   return Node.objects.exclude({}).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT 1=1')
   })
 })
 
-test('test select with empty or as exclude', function (assert) {
+test('test select with empty or as exclude', assert => {
   return Node.objects.exclude([]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT 1=1')
   })
 })
 
-test('test select with or with single empty object as exclude', function (assert) {
+test('test select with or with single empty object as exclude', assert => {
   return Node.objects.exclude([{}]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT 1=1')
   })
 })
 
-test('test select with or with two empty objects as exclude', function (assert) {
+test('test select with or with two empty objects as exclude', assert => {
   return Node.objects.exclude([{}, {}]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT (1=1 OR 1=1)')
   })
 })
 
-test('test select with or with one filter and one empty object as exclude', function (assert) {
+test('test select with or with one filter and one empty object as exclude', assert => {
   return Node.objects.exclude([{ id: 1 }, {}]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT ("nodes"."id" = $1 OR 1=1)')
   })
