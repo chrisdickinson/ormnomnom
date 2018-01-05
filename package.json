@@ -11,7 +11,8 @@
     "pretest": "node -e 'require(\"./test/db\").createdb()'",
     "test": "TZ=UTC tap test/*-test.js",
     "posttest": "standard",
-    "test-cov": "TZ=UTC tap --cov test/*-test.js"
+    "test-cov": "TZ=UTC tap --cov test/*-test.js",
+    "test-cov-html": "TZ=UTC tap --coverage-report=html test/*-test.js"
   },
   "repository": {
     "type": "git",
