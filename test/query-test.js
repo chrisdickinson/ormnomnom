@@ -462,6 +462,53 @@ test('test slice with no end', assert => {
   })
 })
 
+test('test notIn with query as param', assert => {
+  return Ref.objects.filter({
+    'node_id:notIn': Node.objects.filter({ 'id:gt': 1 }).valuesList('id')
+  }).then(xs => {
+    assert.deepEqual(xs, [{
+      id: 1,
+      node: null,
+      node_id: 1,
+      val: 10
+    }])
+  })
+})
+
+test('test gt with query as param (should throw validation error)', assert => {
+  return Ref.objects.filter({
+    'node_id:gt': Node.objects.filter({ id: 1 }).valuesList('id')
+  }).then(_ => {
+    assert.fail('should not reach here')
+  }).catch(err => {
+    assert.equals(err.name, 'ValidationError')
+    assert.equals(err.message, 'child "node_id:gt" fails because ["node_id:gt" must be a number, "node_id:gt" must be a number of milliseconds or valid date string]')
+  })
+})
+
+test('test in with query containing no filter as param', assert => {
+  return Ref.objects.filter({
+    'node_id:in': Node.objects.all().valuesList('id')
+  }).then(xs => {
+    assert.deepEquals(xs, [{
+      id: 1,
+      node: null,
+      node_id: 1,
+      val: 10
+    }, {
+      id: 2,
+      node: null,
+      node_id: 2,
+      val: 0
+    }, {
+      id: 3,
+      node: null,
+      node_id: 3,
+      val: 0
+    }])
+  })
+})
+
 test('test "in query" optimization', assert => {
   return Ref.objects.filter({
     'node_id:in': Node.objects.filter({name: 'gary busey'}).valuesList('id')
