@@ -122,12 +122,13 @@ test('test insert errors when validation fails', assert => {
 })
 
 test('test insert fails when primary key conflicts', assert => {
+  ormnomnom.describeConflict('nodes_pkey', 'Node already exists')
   return Node.objects.create({
     id: 1,
     name: 'broken',
     val: 100
   }).catch(err => {
-    assert.equals(err.message, 'duplicate key value violates unique constraint "nodes_pkey"')
+    assert.equals(err.message, 'Node already exists')
   })
 })
 
