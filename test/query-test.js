@@ -132,6 +132,16 @@ test('test insert fails when primary key conflicts', assert => {
   })
 })
 
+test('test insert fails when primary key conflicts (no description available)', assert => {
+  return Ref.objects.create({
+    id: 1,
+    node_id: 1,
+    val: 100
+  }).catch(err => {
+    assert.equals(err.message, 'duplicate key value violates unique constraint "refs_pkey"')
+  })
+})
+
 test('test update (none affected)', assert => {
   return Node.objects
     .filter({'val:gt': 30000})
