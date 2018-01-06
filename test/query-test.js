@@ -358,6 +358,16 @@ test('test deep values select', assert => {
   })
 })
 
+test('test select with order by joined column', assert => {
+  return Farout.objects.create({ ref_id: 1 }).then(_ => {
+    return Farout.objects.all().order('ref.node.id')
+  }).then(xs => {
+    assert.match(xs, [{
+      ref_id: 1
+    }])
+  })
+})
+
 test('test streaming select', assert => {
   return new Promise((resolve, reject) => {
     const receiver = new Writable({
