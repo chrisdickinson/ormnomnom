@@ -39,10 +39,10 @@
     "quotemeta": "0.0.0"
   },
   "devDependencies": {
-    "pg": "^6.1.5",
+    "pg": "^7.4.1",
     "pgtools": "^0.3.0",
     "standard": "^10.0.1",
-    "standard-version": "^4.0.0",
+    "standard-version": "^4.3.0",
     "tap": "^11.0.1",
     "weallbehave": "^1.0.3",
     "weallcontribute": "^1.0.8"
