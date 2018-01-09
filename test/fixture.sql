@@ -87,5 +87,6 @@ INSERT INTO refs (node_id, val) VALUES
 
 CREATE TABLE farouts (
   id serial primary key,
-  ref_id integer default null references "refs" ("id") on delete cascade
+  ref_id integer default null references "refs" ("id") on delete cascade,
+  second_ref_id integer default null references "refs" ("id") on delete cascade
 );

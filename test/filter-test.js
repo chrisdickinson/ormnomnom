@@ -1,11 +1,11 @@
 'use strict'
 
 const Promise = require('bluebird')
-const { beforeEach, afterEach, teardown, test } = require('tap')
+const {beforeEach, afterEach, teardown, test} = require('tap')
 
 const ormnomnom = require('..')
 const db = require('./db')
-const { Node, Ref } = require('./models')
+const {Node, Ref} = require('./models')
 
 db.setup(beforeEach, afterEach, teardown)
 
@@ -172,7 +172,7 @@ test('test invalid fk filter: not a model', assert => {
     'val': ormnomnom.joi.number().required()
   })
 
-  return RefObjects.filter({'node.id': 3}).then(_ => {
+  return RefObjects.filter({'node.id': 3}).then(() => {
     throw new Error('expected error')
   }, err => {
     assert.equal(err.message, 'No DAO registered for FakeNode')
@@ -180,7 +180,7 @@ test('test invalid fk filter: not a model', assert => {
 })
 
 test('test invalid fk filter: not a fk', assert => {
-  return Ref.objects.filter({'val.id': 3}).then(_ => {
+  return Ref.objects.filter({'val.id': 3}).then(() => {
     throw new Error('expected error')
   }, err => {
     assert.equal(err.message, 'val is not a join-able column')
@@ -268,7 +268,7 @@ test('test :in on empty array', assert => {
 })
 
 test('test chaining filters', assert => {
-  return Node.objects.filter({ id: 1 }).filter({ name: 'HELLO' }).then(xs => {
+  return Node.objects.filter({id: 1}).filter({name: 'HELLO'}).then(xs => {
     assert.deepEquals(xs, [{
       id: 1,
       name: 'HELLO',
@@ -278,7 +278,7 @@ test('test chaining filters', assert => {
 })
 
 test('test converts falsey filter to match all', assert => {
-  return Node.objects.filter([{ id: 1 }, null]).sql.then(xs => {
+  return Node.objects.filter([{id: 1}, null]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE ("nodes"."id" = $1 OR 1=1)')
   })
 })
@@ -314,7 +314,7 @@ test('test select with or with two empty objects', assert => {
 })
 
 test('test select with or with one filter and one empty object', assert => {
-  return Node.objects.filter([{ id: 1 }, {}]).sql.then(xs => {
+  return Node.objects.filter([{id: 1}, {}]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE ("nodes"."id" = $1 OR 1=1)')
   })
 })
@@ -350,7 +350,7 @@ test('test select with or with two empty objects as exclude', assert => {
 })
 
 test('test select with or with one filter and one empty object as exclude', assert => {
-  return Node.objects.exclude([{ id: 1 }, {}]).sql.then(xs => {
+  return Node.objects.exclude([{id: 1}, {}]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT ("nodes"."id" = $1 OR 1=1)')
   })
 })

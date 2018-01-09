@@ -1,6 +1,6 @@
 'use strict'
 
-const { beforeEach, afterEach, teardown, test } = require('tap')
+const {beforeEach, afterEach, teardown, test} = require('tap')
 
 const ormnomnom = require('..')
 const db = require('./db')
@@ -13,12 +13,9 @@ test('produces expected table name', assert => {
   const objects = ormnomnom(TestFoo, {
     id: ormnomnom.joi.number()
   })
-  objects.all().sql.then(sql => {
+  return objects.all().sql.then(sql => {
     assert.ok(/"test_foos"/g.test(sql))
   })
-  .return(null)
-  .then(assert.end)
-  .catch(assert.end)
 })
 
 test('throws if passed to two ormnomnoms', assert => {

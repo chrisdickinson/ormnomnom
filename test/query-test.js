@@ -1,11 +1,11 @@
 'use strict'
 
 const Promise = require('bluebird')
-const { beforeEach, afterEach, teardown, test } = require('tap')
-const { Writable } = require('stream')
+const {beforeEach, afterEach, teardown, test} = require('tap')
+const {Writable} = require('stream')
 
 const ormnomnom = require('..')
-const { Node, Ref, Farout } = require('./models')
+const {Node, Ref, Farout} = require('./models')
 const db = require('./db')
 
 db.setup(beforeEach, afterEach, teardown)
@@ -165,7 +165,7 @@ test('test update with missing data', assert => {
 })
 
 test('test update', assert => {
-  return Node.objects.filter({ id: 1 }).update([{ name: 'janis joplin' }, null]).catch(err => {
+  return Node.objects.filter({id: 1}).update([{name: 'janis joplin'}, null]).catch(err => {
     assert.equals(err.message, 'Attempted update of Node object with no data')
   })
 })
@@ -214,7 +214,7 @@ test('test update (one affected, with join)', assert => {
 })
 
 test('test update (all affected)', assert => {
-  return Node.objects.update({ val: 14 }).then(xs => {
+  return Node.objects.update({val: 14}).then(xs => {
     assert.deepEqual(xs, 5)
     return db.getConnection()
   }).then(conn => {
@@ -248,7 +248,7 @@ test('test update (all affected)', assert => {
 
 test('test filter with delete', assert => {
   return Node.objects
-    .filter({ id: 1000 })
+    .filter({id: 1000})
     .delete()
     .then(xs => {
       assert.deepEqual(xs, 0)
@@ -264,7 +264,7 @@ test('test filter with delete', assert => {
 
 test('test delete', assert => {
   return Node.objects
-    .delete({ id: 1 })
+    .delete({id: 1})
     .then(xs => {
       assert.deepEqual(xs, 1)
       return db.getConnection()
@@ -280,7 +280,7 @@ test('test delete', assert => {
 
 test('test delete with or', assert => {
   return Node.objects
-    .delete([{ id: 1 }, { id: 2 }])
+    .delete([{id: 1}, {id: 2}])
     .then(xs => {
       assert.deepEqual(xs, 2)
       return db.getConnection()
@@ -320,7 +320,7 @@ test('test simple select', assert => {
       name: 'jake busey',
       val: -100
     })
-  }).then(_ => {
+  }).then(() => {
     return Ref.objects.filter({'node.name:startsWith': 'jake'}).then(xs => {
       assert.equal(xs.length, 1)
       assert.equal(xs[0].node.name, 'jake busey')
@@ -330,7 +330,7 @@ test('test simple select', assert => {
 })
 
 test('test select with or (with only one condition)', assert => {
-  return Node.objects.filter([{ id: 1 }]).then(xs => {
+  return Node.objects.filter([{id: 1}]).then(xs => {
     assert.deepEqual(xs, [{
       id: 1,
       name: 'HELLO',
@@ -359,7 +359,7 @@ test('test deep values select', assert => {
 })
 
 test('test select with order by joined column', assert => {
-  return Farout.objects.create({ ref_id: 1 }).then(_ => {
+  return Farout.objects.create({ref_id: 1}).then(() => {
     return Farout.objects.all().order('ref.node.id')
   }).then(xs => {
     assert.match(xs, [{
@@ -368,10 +368,21 @@ test('test select with order by joined column', assert => {
   })
 })
 
+test('test select with multiple joins', assert => {
+  return Farout.objects.create({ref_id: 1, second_ref_id: 2}).then(() => {
+    return Farout.objects.filter([{'ref.id': 1}, {'second_ref.id': 2}])
+  }).then(xs => {
+    assert.match(xs, [{
+      ref_id: 1,
+      second_ref_id: 2
+    }])
+  })
+})
+
 test('test streaming select', assert => {
   return new Promise((resolve, reject) => {
     const receiver = new Writable({
-      write: function (chunk, _, callback) {
+      write (chunk, _, callback) {
         assert.deepEquals(chunk, {
           id: 1,
           name: 'HELLO',
@@ -385,12 +396,12 @@ test('test streaming select', assert => {
     receiver.on('error', reject)
     receiver.on('finish', resolve)
 
-    Node.objects.filter({ id: 1 }).pipe(receiver)
+    Node.objects.filter({id: 1}).pipe(receiver)
   })
 })
 
 test('test onQuery fires', assert => {
-  const eventFired = new Promise((resolve) => {
+  const eventFired = new Promise(resolve => {
     const listener = function (cls, sql) {
       assert.equals(cls.name, 'Node')
       ormnomnom.removeQueryListener(listener)
@@ -401,14 +412,14 @@ test('test onQuery fires', assert => {
 
   return Promise.all([
     eventFired,
-    Node.objects.filter({ id: 1 }).then(xs => {
-      assert.match(xs[0], { id: 1, name: 'HELLO', val: 3 })
+    Node.objects.filter({id: 1}).then(xs => {
+      assert.match(xs[0], {id: 1, name: 'HELLO', val: 3})
     })
   ])
 })
 
 test('test distinct', assert => {
-  return Ref.objects.filter({ val: 0 }).distinct('val').then(xs => {
+  return Ref.objects.filter({val: 0}).distinct('val').then(xs => {
     assert.deepEqual(xs, [{
       node: null,
       id: 2,
@@ -419,7 +430,7 @@ test('test distinct', assert => {
 })
 
 test('test distinct with default column', assert => {
-  return Ref.objects.filter({ val: 0 }).distinct().then(xs => {
+  return Ref.objects.filter({val: 0}).distinct().then(xs => {
     assert.deepEqual(xs, [{
       node: null,
       id: 2,
@@ -474,7 +485,7 @@ test('test slice with no end', assert => {
 
 test('test notIn with query as param', assert => {
   return Ref.objects.filter({
-    'node_id:notIn': Node.objects.filter({ 'id:gt': 1 }).valuesList('id')
+    'node_id:notIn': Node.objects.filter({'id:gt': 1}).valuesList('id')
   }).then(xs => {
     assert.deepEqual(xs, [{
       id: 1,
@@ -487,8 +498,8 @@ test('test notIn with query as param', assert => {
 
 test('test gt with query as param (should throw validation error)', assert => {
   return Ref.objects.filter({
-    'node_id:gt': Node.objects.filter({ id: 1 }).valuesList('id')
-  }).then(_ => {
+    'node_id:gt': Node.objects.filter({id: 1}).valuesList('id')
+  }).then(() => {
     assert.fail('should not reach here')
   }).catch(err => {
     assert.equals(err.name, 'ValidationError')
@@ -568,7 +579,7 @@ test('test getOrCreate multiple objects returned', assert => {
     val: 0xdeadbeef
   })
 
-  return Node.objects.getOrCreate({name: cloneBusey.get('name')}).then(_ => {
+  return Node.objects.getOrCreate({name: cloneBusey.get('name')}).then(() => {
     throw new Error('should throw exception')
   }, err => {
     assert.equal(err.constructor, Node.objects.MultipleObjectsReturned)
@@ -629,7 +640,7 @@ test('test group', assert => {
   return Ref.objects.create({
     node_id: 2,
     val: 5
-  }).then(_ => {
+  }).then(() => {
     return Ref.objects.all().group('node_id').annotate({
       highest (ref) {
         return `max(${ref('val')})`
@@ -638,15 +649,15 @@ test('test group', assert => {
   }).then(xs => {
     assert.equals(xs.length, 3)
     assert.match(xs, [
-      [{ node_id: 3 }, { highest: 0 }],
-      [{ node_id: 2 }, { highest: 5 }],
-      [{ node_id: 1 }, { highest: 10 }]
+      [{node_id: 3}, {highest: 0}],
+      [{node_id: 2}, {highest: 5}],
+      [{node_id: 1}, {highest: 10}]
     ])
   })
 })
 
 test('test group (no annotations)', assert => {
-  return Ref.objects.create({ node_id: 3, val: 5 }).then(_ => {
+  return Ref.objects.create({node_id: 3, val: 5}).then(() => {
     return Ref.objects.all().group('node_id').order('-node_id')
   }).then(xs => {
     assert.match(xs, [{
@@ -666,9 +677,9 @@ test('test group (annotation using push)', assert => {
     }
   }).order('node_id').then(xs => {
     assert.match(xs, [
-      [{ node_id: 1 }, { matches: true }],
-      [{ node_id: 2 }, { matches: false }],
-      [{ node_id: 3 }, { matches: false }]
+      [{node_id: 1}, {matches: true}],
+      [{node_id: 2}, {matches: false}],
+      [{node_id: 3}, {matches: false}]
     ])
   })
 })

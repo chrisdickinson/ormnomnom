@@ -1,9 +1,9 @@
 'use strict'
 
-const { beforeEach, afterEach, teardown, test } = require('tap')
+const {beforeEach, afterEach, teardown, test} = require('tap')
 
 const db = require('./db')
-const { Invoice, LineItem } = require('./models')
+const {Invoice, LineItem} = require('./models')
 
 db.setup(beforeEach, afterEach, teardown)
 
@@ -66,12 +66,13 @@ test('annotate, group, refstar', assert => {
   return Invoice.objects.all().group().annotate({
     lineItems: ref => `json_agg(${ref('line_items.*')})`
   }).order('id').then(results => {
-    assert.deepEqual(results.map(xs => {
-      return [xs[0].id, xs[1].lineItems.map(ys => ys.invoice_id)]
-    }), [
-      [1, Array.from(Array(10)).map(xs => 1)],
-      [2, Array.from(Array(10)).map(xs => 2)],
-      [3, Array.from(Array(10)).map(xs => 3)]
-    ])
+    assert.deepEqual(results.map(
+      xs => [xs[0].id, xs[1].lineItems.map(ys => ys.invoice_id)]),
+      [
+        [1, Array.from(Array(10)).map(xs => 1)],
+        [2, Array.from(Array(10)).map(xs => 2)],
+        [3, Array.from(Array(10)).map(xs => 3)]
+      ]
+    )
   })
 })

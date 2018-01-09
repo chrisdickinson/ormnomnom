@@ -67,12 +67,15 @@ class Farout {
     this.id = obj.id
     this.ref = obj.ref
     this.ref_id = obj.ref_id
+    this.second_ref = obj.second_ref
+    this.second_ref_id = obj.second_ref_id
   }
 }
 
 Farout.objects = orm(Farout, {
   id: orm.joi.number(),
-  ref: orm.fk(Ref, { nullable: true })
+  ref: orm.fk(Ref, {nullable: true}),
+  second_ref: orm.fk(Ref, {nullable: true})
 })
 
 module.exports = {

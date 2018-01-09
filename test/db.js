@@ -26,11 +26,11 @@ function createdb () {
     if (err.name !== 'invalid_catalog_name') {
       throw err
     }
-  }).then(_ => {
+  }).then(() => {
     return pgtools.createdb({}, TEST_DB_NAME)
-  }).then(_ => {
+  }).then(() => {
     return getConnection().then(client => {
-      return client.connection.query(fs.readFileSync(path.join(__dirname, 'fixture.sql'), { encoding: 'utf8' })).then(_ => client.connection.end())
+      return client.connection.query(fs.readFileSync(path.join(__dirname, 'fixture.sql'), {encoding: 'utf8'})).then(() => client.connection.end())
     })
   })
 }
@@ -62,18 +62,18 @@ function getConnection (commit) {
     if (connected) {
       return resolve({
         connection: client,
-        release: _ => {}
+        release: () => {}
       })
     }
 
     client.connect()
     client.once('error', reject)
-    client.once('connect', _ => {
+    client.once('connect', () => {
       client.removeListener('error', reject)
       connected = true
       resolve({
         connection: client,
-        release: _ => {}
+        release: () => {}
       })
     })
   })
