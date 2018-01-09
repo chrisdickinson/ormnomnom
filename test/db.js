@@ -1,71 +1,79 @@
 'use strict'
 
 module.exports = {
+  createdb: createdb,
   setup: setup,
-  teardown: teardown,
-  schema: schema,
   getConnection: getConnection
 }
 
-const spawn = require('child_process').spawn
 const Promise = require('bluebird')
+const fs = require('fs')
 const ormnomnom = require('..')
+const path = require('path')
 const pg = require('pg')
+const pgtools = require('pgtools')
 
-function setup (ready) {
-  return teardown().then(_ => new Promise(function (resolve, reject) {
-    spawn('createdb', [process.env.TEST_DB_NAME || 'onn_test']).on('exit', function () {
-      ormnomnom.setConnection(getConnection)
-      resolve()
-    })
-  }))
-}
+const TEST_DB_NAME = process.env.TEST_DB_NAME || 'onn_test'
+const client = new pg.Client({
+  database: TEST_DB_NAME
+})
+let connected = false
 
-function teardown (ready) {
-  return new Promise(function (resolve, reject) {
-    spawn('dropdb', [process.env.TEST_DB_NAME || 'onn_test']).on('exit', function () {
-      resolve()
+function createdb () {
+  ormnomnom.setConnection(getConnection)
+  return pgtools.dropdb({}, TEST_DB_NAME).catch(err => {
+    // ignore this error since it throws if the db doesn't exist
+    if (err.name !== 'invalid_catalog_name') {
+      throw err
+    }
+  }).then(() => {
+    return pgtools.createdb({}, TEST_DB_NAME)
+  }).then(() => {
+    return getConnection().then(client => {
+      return client.connection.query(fs.readFileSync(path.join(__dirname, 'fixture.sql'), {encoding: 'utf8'})).then(() => client.connection.end())
     })
   })
 }
 
-function getConnection () {
-  return new Promise(function (resolve, reject) {
-    const client = new pg.Client({
-      host: 'localhost',
-      database: process.env.TEST_DB_NAME || 'onn_test'
+function setup (beforeEach, afterEach, teardown) {
+  beforeEach(function () {
+    return getConnection().then(client => {
+      return client.connection.query('BEGIN')
     })
+  })
+
+  afterEach(function () {
+    return getConnection().then(client => {
+      return client.connection.query('ROLLBACK')
+    })
+  })
+
+  teardown(function () {
+    return getConnection().then(client => {
+      return client.connection.end()
+    })
+  })
+
+  ormnomnom.setConnection(getConnection)
+}
+
+function getConnection (commit) {
+  return new Promise((resolve, reject) => {
+    if (connected) {
+      return resolve({
+        connection: client,
+        release: () => {}
+      })
+    }
+
     client.connect()
-    client
-      .once('error', reject)
-      .once('connect', _ => {
-        client.removeListener('error', reject)
-        resolve({
-          connection: client,
-          release: _ => client.end()
-        })
-      })
-  })
-}
-
-function schema (chunks) {
-  chunks = chunks.slice()
-  const args = [].slice.call(arguments, 1)
-  const out = [chunks.shift()]
-  while (chunks.length) {
-    out.push(args.shift())
-    out.push(chunks.shift())
-  }
-  const ddl = out.join('')
-  return getConnection().then(function (client) {
-    return new Promise((resolve, reject) => {
-      const query = client.connection.query(ddl)
-      query.once('error', err => {
-        reject(err)
-      })
-      query.once('end', function () {
-        client.release()
-        resolve()
+    client.once('error', reject)
+    client.once('connect', () => {
+      client.removeListener('error', reject)
+      connected = true
+      resolve({
+        connection: client,
+        release: () => {}
       })
     })
   })

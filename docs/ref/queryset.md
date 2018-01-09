@@ -28,11 +28,11 @@ const onlyTheBest = require('./only-the-best-filter')
 const onlyConsonants = require('./only-consonants')
 
 // get the best consonant letters
-var myLetters = LetterObjects.all()
+let myLetters = LetterObjects.all()
 myLetters = onlyTheBest(onlyConsonants(myLetters))
 
 // get the best letters from the first half of the alphabet
-var firstLetters = LetterObjects.all().slice(0, 13)
+let firstLetters = LetterObjects.all().slice(0, 13)
 firstLetters = onlyTheBest(firstLetters)
 ```
 
