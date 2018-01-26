@@ -3,7 +3,6 @@
 const {beforeEach, afterEach, teardown, test} = require('tap')
 
 const ormnomnom = require('..')
-const symbols = require('../lib/shared-symbols')
 const db = require('./db')
 
 db.setup(beforeEach, afterEach, teardown)
