@@ -127,6 +127,8 @@ test('test insert fails when primary key conflicts', assert => {
     id: 1,
     name: 'broken',
     val: 100
+  }).then(() => {
+    assert.fail('should not be reachable')
   }).catch(err => {
     assert.equals(err.message, 'Node already exists')
   })
@@ -137,6 +139,8 @@ test('test insert fails when primary key conflicts (no description available)', 
     id: 1,
     node_id: 1,
     val: 100
+  }).then(() => {
+    assert.fail('should not be reachable')
   }).catch(err => {
     assert.equals(err.message, 'duplicate key value violates unique constraint "refs_pkey"')
   })
