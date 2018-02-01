@@ -41,7 +41,18 @@ module.exports = function (dao, opts = {}) {
     }
 
     filter (query) {
-      return super.filter(Object.assign({}, { 'deleted:isNull': true }, query))
+      const q = Object.assign({}, { 'deleted:isNull': true }, query)
+
+      for (const key in q) {
+        const path = key.split(':')[0]
+        const bits = path.split('.')
+        for (let i = 0; i < bits.length - 1; ++i) {
+          const segment = bits.slice(0, i + 1).join('.')
+          q[`${segment}.deleted:isNull`] = true
+        }
+      }
+
+      return super.filter(q)
     }
 
     delete () {

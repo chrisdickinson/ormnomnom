@@ -98,3 +98,12 @@ CREATE TABLE items (
   updated timestamp,
   deleted timestamp
 );
+
+CREATE TABLE item_details (
+  id serial primary key,
+  comment text,
+  item_id integer default null references "items" ("id") on delete cascade,
+  created timestamp,
+  updated timestamp,
+  deleted timestamp
+)

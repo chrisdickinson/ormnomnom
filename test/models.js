@@ -96,11 +96,33 @@ Item.objects = orm(Item, {
   deleted: orm.joi.date()
 })
 
+class ItemDetail {
+  constructor (obj) {
+    this.id = obj.id
+    this.comment = obj.comment
+    this.item_id = obj.item_id
+    this.item = obj.item
+    this.created = obj.created
+    this.updated = obj.updated
+    this.deleted = obj.deleted
+  }
+}
+
+ItemDetail.objects = orm(ItemDetail, {
+  id: orm.joi.number(),
+  comment: orm.joi.string(),
+  item: orm.fk(Item, {nullable: true}),
+  created: orm.joi.date(),
+  updated: orm.joi.date(),
+  deleted: orm.joi.date()
+})
+
 module.exports = {
   Invoice,
   LineItem,
   Node,
   Ref,
   Farout,
-  Item
+  Item,
+  ItemDetail
 }

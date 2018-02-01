@@ -2,7 +2,7 @@
 
 const {beforeEach, afterEach, teardown, test} = require('tap')
 
-const {Item} = require('./models')
+const {Item, ItemDetail} = require('./models')
 const autoNow = require('../decorators/autonow')
 const softDelete = require('../decorators/softdelete')
 const db = require('./db')
@@ -316,5 +316,24 @@ test('softdelete: get() extends queries to filter soft deleted objects', assert 
   }).then(item => {
     assert.notEqual(item.deleted, null, 'deleted column should be set')
     assert.rejects(Item.wrappedObjects.get({ name: 'test' }), Item.objects.NotFound)
+  })
+})
+
+test('softdelete: filters deleted joins', assert => {
+  Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
+  ItemDetail.wrappedObjects = softDelete(ItemDetail.objects, { column: 'deleted' })
+
+  return Item.objects.create({ name: 'test' }).then(item => {
+    return ItemDetail.objects.create({ item, comment: 'some item' }).then(detail => {
+      return Item.wrappedObjects.delete({ id: item.id }).then(count => {
+        assert.equals(count, 1, 'should have deleted one row')
+        return Item.objects.get({ id: item.id })
+      }).then(deleted => {
+        assert.notEqual(deleted.deleted, null, 'item should be soft deleted')
+        return ItemDetail.wrappedObjects.filter({ 'item.name': 'test' })
+      }).then(details => {
+        assert.equals(details.length, 0, 'should find no results due to deleted item')
+      })
+    })
   })
 })
