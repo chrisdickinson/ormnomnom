@@ -78,10 +78,29 @@ Farout.objects = orm(Farout, {
   second_ref: orm.fk(Ref, {nullable: true})
 })
 
+class Item {
+  constructor (obj) {
+    this.id = obj.id
+    this.name = obj.name
+    this.created = obj.created
+    this.updated = obj.updated
+    this.deleted = obj.deleted
+  }
+}
+
+Item.objects = orm(Item, {
+  id: orm.joi.number(),
+  name: orm.joi.string(),
+  created: orm.joi.date(),
+  updated: orm.joi.date(),
+  deleted: orm.joi.date()
+})
+
 module.exports = {
   Invoice,
   LineItem,
   Node,
   Ref,
-  Farout
+  Farout,
+  Item
 }

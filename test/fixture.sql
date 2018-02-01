@@ -90,3 +90,11 @@ CREATE TABLE farouts (
   ref_id integer default null references "refs" ("id") on delete cascade,
   second_ref_id integer default null references "refs" ("id") on delete cascade
 );
+
+CREATE TABLE items (
+  id serial primary key,
+  name text,
+  created timestamp,
+  updated timestamp,
+  deleted timestamp
+);
