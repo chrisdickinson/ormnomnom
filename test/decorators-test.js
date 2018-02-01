@@ -4,6 +4,7 @@ const {beforeEach, afterEach, teardown, test} = require('tap')
 
 const {Item} = require('./models')
 const autoNow = require('../decorators/autonow')
+const softDelete = require('../decorators/softdelete')
 const db = require('./db')
 
 db.setup(beforeEach, afterEach, teardown)
@@ -203,5 +204,117 @@ test('autonow: can add two columns with different settings', assert => {
         assert.ok(newItem.updated > item.updated, 'updated column should be updated')
       })
     })
+  })
+})
+
+test('softdelete: throws when argument is not a dao', assert => {
+  assert.throws(() => {
+    Item.wrappedObjects = softDelete(Item)
+  }, {
+    message: 'Expected instance of DAO'
+  })
+
+  assert.end()
+})
+
+test('softdelete: throws when no column is passed', assert => {
+  assert.throws(() => {
+    Item.wrappedObjects = softDelete(Item.objects)
+  }, {
+    message: 'Must specify column name for soft deletions'
+  })
+
+  assert.end()
+})
+
+test('softdelete: throws when trying to attach to the same column twice', assert => {
+  Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
+
+  assert.throws(() => {
+    Item.doubleWrappedObjects = softDelete(Item.wrappedObjects, { column: 'deleted' })
+  }, {
+    message: 'The column "deleted" is already configured for soft deletions'
+  })
+
+  assert.end()
+})
+
+test('softdelete: can register two columns', assert => {
+  Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
+
+  assert.doesNotThrow(() => {
+    Item.doubleWrappedObjects = softDelete(Item.wrappedObjects, { column: 'updated' })
+  })
+
+  assert.end()
+})
+
+test('softdelete: original dao is not modified', assert => {
+  Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
+
+  return Item.objects.create({ name: 'test' }).then(item => {
+    return Item.objects.delete({ name: 'test' }).then(deleted => {
+      assert.equals(deleted, 1, 'should have deleted one row')
+      assert.rejects(Item.objects.get({ name: 'test' }), Item.objects.NotFound)
+    })
+  })
+})
+
+test('softdelete: sets a value to deleted column when trying to delete', assert => {
+  Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
+
+  return Item.objects.create({ name: 'test' }).then(item => {
+    return Item.wrappedObjects.delete({ name: 'test' })
+  }).then(deleted => {
+    assert.equals(deleted, 1, 'should have soft deleted one row')
+    return Item.objects.get({ name: 'test' })
+  }).then(item => {
+    assert.notEqual(item.deleted, null, 'deleted column should be set')
+  })
+})
+
+test('softdelete: all() filters soft deleted objects', assert => {
+  Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
+
+  return Item.objects.create({ name: 'test' }).then(item => {
+    return Item.wrappedObjects.delete({ name: 'test' })
+  }).then(deleted => {
+    assert.equals(deleted, 1, 'should have soft deleted one row')
+    return Item.objects.get({ name: 'test' })
+  }).then(item => {
+    assert.notEqual(item.deleted, null, 'deleted column should be set')
+    return Item.wrappedObjects.all()
+  }).then(items => {
+    assert.equals(items.length, 0, 'should return no rows')
+  })
+})
+
+test('softdelete: filter() extends queries to filter soft deleted objects', assert => {
+  Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
+
+  return Item.objects.create({ name: 'test' }).then(item => {
+    return Item.wrappedObjects.delete({ name: 'test' })
+  }).then(deleted => {
+    assert.equals(deleted, 1, 'should have soft deleted one row')
+    return Item.objects.get({ name: 'test' })
+  }).then(item => {
+    assert.notEqual(item.deleted, null, 'deleted column should be set')
+    return Item.wrappedObjects.filter({ name: 'test' })
+  }).then(items => {
+    assert.equals(items.length, 0, 'should return no rows')
+  })
+})
+
+test('softdelete: get() extends queries to filter soft deleted objects', assert => {
+  Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
+
+  return Item.objects.create({ name: 'test' }).then(item => {
+    return Item.wrappedObjects.delete({ name: 'test' })
+  }).then(deleted => {
+    assert.equals(deleted, 1, 'should have soft deleted one row')
+    return Item.objects.get({ name: 'test' })
+  }).then(item => {
+    assert.notEqual(item.deleted, null, 'deleted column should be set')
+    assert.rejects(Item.wrappedObjects.get({ name: 'test' }), Item.objects.NotFound)
   })
 })
