@@ -61,7 +61,7 @@ module.exports = function (dao, opts = {}) {
     }
 
     delete () {
-      return super.update({ deleted: new Date() })
+      return super.update({ [column]: new Date() })
     }
   }
 
