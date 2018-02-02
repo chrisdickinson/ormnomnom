@@ -12,5 +12,5 @@ const defaults = {
 module.exports = function (dao, opts = {}) {
   const options = Object.assign({}, defaults, opts)
 
-  return autoNow(autoNow(softDelete(dao, { column: options.deleted }), { column: options.updated }), { column: options.created, createOnly: true })
+  return autoNow(autoNow(softDelete(dao, {column: options.deleted}), {column: options.updated}), {column: options.created, createOnly: true})
 }

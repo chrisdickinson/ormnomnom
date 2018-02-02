@@ -36,11 +36,11 @@ module.exports = function (dao, opts = {}) {
 
   class SoftDeleteQuerySet extends queryset.constructor {
     get (query) {
-      return super.get(Object.assign({}, { [`${column}:isNull`]: true }, query))
+      return super.get(Object.assign({}, {[`${column}:isNull`]: true}, query))
     }
 
     filter (query) {
-      const q = Object.assign({}, { [`${column}:isNull`]: true }, query)
+      const q = Object.assign({}, {[`${column}:isNull`]: true}, query)
 
       for (const key in q) {
         const path = key.split(':')[0]
@@ -61,12 +61,12 @@ module.exports = function (dao, opts = {}) {
     }
 
     delete () {
-      return super.update({ [column]: new Date() })
+      return super.update({[column]: new Date()})
     }
   }
 
   wrappedDao.all = function () {
-    return this.getQuerySet().filter({ [`${column}:isNull`]: true })
+    return this.getQuerySet().filter({[`${column}:isNull`]: true})
   }.bind(wrappedDao)
 
   privateAPI.getQuerySet = function () {
