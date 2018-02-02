@@ -49,7 +49,7 @@ module.exports = function (dao, opts = {}) {
         for (let i = 0; i < bits.length - 1; ++i) {
           const reference = bits[i]
           if (!(reference in ddl) || !(softDeleteSym in ddl[reference].cls[clsToDAOSym])) {
-            break
+            continue
           }
           const segment = bits.slice(0, i + 1)
           q[`${segment.join('.')}.${ddl[reference].cls[clsToDAOSym][softDeleteSym]}:isNull`] = true
