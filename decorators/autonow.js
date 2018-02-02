@@ -18,6 +18,10 @@ module.exports = function (dao, opts = {}) {
     throw new Error('Must specify column name for automatic timestamps')
   }
   const column = opts.column
+  if (!(column in dao[privateAPISym].ddl) || dao[privateAPISym].ddl[column].isFK) {
+    throw new Error(`Column "${column}" does not exist and cannot be configured for automatic timestamps`)
+  }
+
   const createOnly = 'createOnly' in opts ? opts.createOnly : false
 
   if (dao[autoNowSym] && dao[autoNowSym].has(column)) {
@@ -28,6 +32,7 @@ module.exports = function (dao, opts = {}) {
   // We also have to manually copy getQuerySet(), clone skips it since
   // it's part of the original prototype
   wrappedDao[privateAPISym].getQuerySet = dao[privateAPISym].getQuerySet
+  wrappedDao.all = dao.all
 
   if (!wrappedDao[autoNowSym]) {
     wrappedDao[autoNowSym] = new Set()

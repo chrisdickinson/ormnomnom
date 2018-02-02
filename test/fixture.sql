@@ -103,7 +103,11 @@ CREATE TABLE item_details (
   id serial primary key,
   comment text,
   item_id integer default null references "items" ("id") on delete cascade,
-  created timestamp,
-  updated timestamp,
-  deleted timestamp
-)
+  deleted_at timestamp
+);
+
+CREATE TABLE item_prices (
+  id serial primary key,
+  price integer,
+  item_detail_id integer default null references "item_details" ("id") on delete cascade
+);

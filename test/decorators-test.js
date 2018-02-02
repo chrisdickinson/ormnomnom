@@ -2,9 +2,10 @@
 
 const {beforeEach, afterEach, teardown, test} = require('tap')
 
-const {Item, ItemDetail} = require('./models')
+const {Item, ItemDetail, ItemPrice} = require('./models')
 const autoNow = require('../decorators/autonow')
 const softDelete = require('../decorators/softdelete')
+const timestamps = require('../decorators/timestamps')
 const db = require('./db')
 
 db.setup(beforeEach, afterEach, teardown)
@@ -24,6 +25,16 @@ test('autonow: throws when no column is passed', assert => {
     Item.wrappedObjects = autoNow(Item.objects)
   }, {
     message: 'Must specify column name for automatic timestamps'
+  })
+
+  assert.end()
+})
+
+test('autonow: throws when given a column that does not exist', assert => {
+  assert.throws(() => {
+    Item.wrappedObjects = autoNow(Item.objects, { column: 'not_here' })
+  }, {
+    message: 'Column "not_here" does not exist and cannot be configured for automatic timestamps'
   })
 
   assert.end()
@@ -227,23 +238,33 @@ test('softdelete: throws when no column is passed', assert => {
   assert.end()
 })
 
-test('softdelete: throws when trying to attach to the same column twice', assert => {
-  Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
-
+test('softdelete: throws when given a column that does not exist', assert => {
   assert.throws(() => {
-    Item.doubleWrappedObjects = softDelete(Item.wrappedObjects, { column: 'deleted' })
+    Item.wrappedObjects = softDelete(Item.objects, { column: 'not_here' })
   }, {
-    message: 'The column "deleted" is already configured for soft deletions'
+    message: 'Column "not_here" does not exist and cannot be configured for soft deletions'
   })
 
   assert.end()
 })
 
-test('softdelete: can register two columns', assert => {
+test('softdelete: does not throw when trying to attach to the same column twice', assert => {
   Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
 
   assert.doesNotThrow(() => {
+    Item.doubleWrappedObjects = softDelete(Item.wrappedObjects, { column: 'deleted' })
+  })
+
+  assert.end()
+})
+
+test('softdelete: throws when trying to attach to a second column', assert => {
+  Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
+
+  assert.throws(() => {
     Item.doubleWrappedObjects = softDelete(Item.wrappedObjects, { column: 'updated' })
+  }, {
+    message: 'The column "deleted" is already configured for soft deletions'
   })
 
   assert.end()
@@ -321,19 +342,57 @@ test('softdelete: get() extends queries to filter soft deleted objects', assert 
 
 test('softdelete: filters deleted joins', assert => {
   Item.wrappedObjects = softDelete(Item.objects, { column: 'deleted' })
-  ItemDetail.wrappedObjects = softDelete(ItemDetail.objects, { column: 'deleted' })
+  ItemDetail.wrappedObjects = softDelete(ItemDetail.objects, { column: 'deleted_at' })
 
   return Item.objects.create({ name: 'test' }).then(item => {
     return ItemDetail.objects.create({ item, comment: 'some item' }).then(detail => {
-      return Item.wrappedObjects.delete({ id: item.id }).then(count => {
-        assert.equals(count, 1, 'should have deleted one row')
-        return Item.objects.get({ id: item.id })
-      }).then(deleted => {
-        assert.notEqual(deleted.deleted, null, 'item should be soft deleted')
-        return ItemDetail.wrappedObjects.filter({ 'item.name': 'test' })
-      }).then(details => {
-        assert.equals(details.length, 0, 'should find no results due to deleted item')
+      return ItemPrice.objects.create({ item_detail: detail, price: 10 }).then(() => {
+        return Item.wrappedObjects.delete({ id: item.id }).then(count => {
+          assert.equals(count, 1, 'should have deleted one row')
+          return Item.objects.get({ id: item.id })
+        }).then(deleted => {
+          assert.notEqual(deleted.deleted, null, 'item should be soft deleted')
+          return ItemDetail.wrappedObjects.filter({ 'item.name': 'test' })
+        }).then(details => {
+          assert.equals(details.length, 0, 'should find no results due to deleted item')
+          return ItemDetail.wrappedObjects.filter({ 'item_prices.price:gt': 5 })
+        }).then(details => {
+          assert.equals(details.length, 1, 'should find one result')
+          assert.equals(details[0].id, detail.id, 'should have found the correct item detail')
+        })
       })
+    })
+  }).then(() => {
+    return Item.wrappedObjects.filter({ 'item_details.item_prices.price:gt': 1 }).raw().then(({sql}) => {
+      assert.match(sql, '"item_details"."deleted_at"', 'uses the correct column name for joins')
+      assert.notMatch(sql, '"item_prices"."deleted', 'does not filter item prices since that table has no soft deletes')
+    })
+  })
+})
+
+test('timestamps: can use combined decorator', assert => {
+  Item.wrappedObjects = timestamps(Item.objects)
+
+  return Item.wrappedObjects.create({ name: 'test' }).then(item => {
+    assert.notEquals(item.created, null, 'created is set')
+    assert.notEquals(item.updated, null, 'updated is set')
+    assert.equals(item.deleted, null, 'deleted is not set')
+    return Item.wrappedObjects.filter({ name: 'test' }).update({ name: 'again' }).then(updated => {
+      assert.equals(updated, 1, 'should have updated 1 row')
+      return Item.wrappedObjects.get({ name: 'again' })
+    }).then(updated => {
+      assert.same(item.created, updated.created, 'created is untouched')
+      assert.ok(item.updated < updated.updated, 'updated is modified')
+      assert.equals(item.deleted, null, 'deleted is not set')
+      return Item.wrappedObjects.delete({ name: 'again' })
+    }).then(count => {
+      assert.equals(count, 1, 'deleted one row')
+      return Item.objects.get({ id: item.id })
+    }).then(rawItem => {
+      assert.notEquals(rawItem.deleted, null, 'deleted is set')
+      return Item.wrappedObjects.all()
+    }).then(items => {
+      assert.equals(items.length, 0, 'should find no items')
     })
   })
 })

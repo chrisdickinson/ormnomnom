@@ -102,9 +102,7 @@ class ItemDetail {
     this.comment = obj.comment
     this.item_id = obj.item_id
     this.item = obj.item
-    this.created = obj.created
-    this.updated = obj.updated
-    this.deleted = obj.deleted
+    this.deleted_at = obj.deleted_at
   }
 }
 
@@ -112,9 +110,22 @@ ItemDetail.objects = orm(ItemDetail, {
   id: orm.joi.number(),
   comment: orm.joi.string(),
   item: orm.fk(Item, {nullable: true}),
-  created: orm.joi.date(),
-  updated: orm.joi.date(),
-  deleted: orm.joi.date()
+  deleted_at: orm.joi.date()
+})
+
+class ItemPrice {
+  constructor (obj) {
+    this.id = obj.id
+    this.price = obj.price
+    this.item_detail = obj.item_detail
+    this.item_detail_id = obj.item_detail_id
+  }
+}
+
+ItemPrice.objects = orm(ItemPrice, {
+  id: orm.joi.number(),
+  price: orm.joi.number(),
+  item_detail: orm.fk(ItemDetail, {nullable: true})
 })
 
 module.exports = {
@@ -124,5 +135,6 @@ module.exports = {
   Ref,
   Farout,
   Item,
-  ItemDetail
+  ItemDetail,
+  ItemPrice
 }
