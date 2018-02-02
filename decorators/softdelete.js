@@ -1,6 +1,6 @@
 'use strict'
 
-const clone = require('clone')
+const clone = require('lodash.clonedeep')
 
 const symbols = require('../lib/shared-symbols')
 const clsToDAOSym = symbols.clsToDAO
@@ -31,11 +31,6 @@ module.exports = function (dao, opts = {}) {
   dao[softDeleteSym] = column
 
   const wrappedDao = clone(dao)
-  // We also have to manually copy getQuerySet(), clone skips it since
-  // it's part of the original prototype
-  wrappedDao[privateAPISym].getQuerySet = dao[privateAPISym].getQuerySet
-  wrappedDao.all = dao.all
-
   const privateAPI = wrappedDao[privateAPISym]
   const queryset = privateAPI.getQuerySet()
 

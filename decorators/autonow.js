@@ -1,6 +1,6 @@
 'use strict'
 
-const clone = require('clone')
+const clone = require('lodash.clonedeep')
 const Promise = require('bluebird')
 
 const symbols = require('../lib/shared-symbols')
@@ -29,11 +29,6 @@ module.exports = function (dao, opts = {}) {
   }
 
   const wrappedDao = clone(dao)
-  // We also have to manually copy getQuerySet(), clone skips it since
-  // it's part of the original prototype
-  wrappedDao[privateAPISym].getQuerySet = dao[privateAPISym].getQuerySet
-  wrappedDao.all = dao.all
-
   if (!wrappedDao[autoNowSym]) {
     wrappedDao[autoNowSym] = new Set()
   }
