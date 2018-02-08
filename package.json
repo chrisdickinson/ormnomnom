@@ -11,7 +11,9 @@
     "pretest": "node -e 'require(\"./test/db\").createdb()'",
     "test": "TZ=UTC tap test/*-test.js",
     "posttest": "standard",
+    "pretest-cov": "npm run pretest",
     "test-cov": "TZ=UTC tap --cov test/*-test.js",
+    "posttest-cov": "npm run posttest",
     "test-cov-html": "TZ=UTC tap --coverage-report=html test/*-test.js"
   },
   "repository": {
@@ -35,6 +37,7 @@
     "bluebird": "^3.4.6",
     "concat-stream": "^1.6.0",
     "joi": "^13.1.0",
+    "lodash.clonedeep": "^4.5.0",
     "pg-query-stream": "^1.0.0",
     "quotemeta": "0.0.0"
   },

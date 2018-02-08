@@ -78,10 +78,63 @@ Farout.objects = orm(Farout, {
   second_ref: orm.fk(Ref, {nullable: true})
 })
 
+class Item {
+  constructor (obj) {
+    this.id = obj.id
+    this.name = obj.name
+    this.created = obj.created
+    this.updated = obj.updated
+    this.deleted = obj.deleted
+  }
+}
+
+Item.objects = orm(Item, {
+  id: orm.joi.number(),
+  name: orm.joi.string(),
+  created: orm.joi.date(),
+  updated: orm.joi.date(),
+  deleted: orm.joi.date()
+})
+
+class ItemDetail {
+  constructor (obj) {
+    this.id = obj.id
+    this.comment = obj.comment
+    this.item_id = obj.item_id
+    this.item = obj.item
+    this.deleted_at = obj.deleted_at
+  }
+}
+
+ItemDetail.objects = orm(ItemDetail, {
+  id: orm.joi.number(),
+  comment: orm.joi.string(),
+  item: orm.fk(Item, {nullable: true}),
+  deleted_at: orm.joi.date()
+})
+
+class ItemPrice {
+  constructor (obj) {
+    this.id = obj.id
+    this.price = obj.price
+    this.item_detail = obj.item_detail
+    this.item_detail_id = obj.item_detail_id
+  }
+}
+
+ItemPrice.objects = orm(ItemPrice, {
+  id: orm.joi.number(),
+  price: orm.joi.number(),
+  item_detail: orm.fk(ItemDetail, {nullable: true})
+})
+
 module.exports = {
   Invoice,
   LineItem,
   Node,
   Ref,
-  Farout
+  Farout,
+  Item,
+  ItemDetail,
+  ItemPrice
 }
