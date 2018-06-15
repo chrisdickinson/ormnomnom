@@ -206,6 +206,7 @@ Relation Name | Description                                         | Effect on 
 `iStartsWith` | Column should start with string, case-insensitive.  | Must be string
 `endsWith`    | Column should end with string.                      | Must be string
 `iEndsWith`   | Column should end with string, case-insensitive.    | Must be string
+`regex`       | Column should match regular expression.             | Must be string
 `in`          | Column should be one of the provided values.        | DAO DDL applied to each array element
 `notIn`       | Column should not be any of the provided values.    | DAO DDL applied to each array element
 `isNull`      | Presence of `NULL` in column should match value.    | Must be boolean

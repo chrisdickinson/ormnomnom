@@ -122,6 +122,11 @@ const filterTests = [{
   }),
   expect: [1, 3, 4]
 }, {
+  query: Node.objects.filter({
+    'name:regex': '\\s\\S'
+  }),
+  expect: [2, 3, 4]
+}, {
   query: Ref.objects.filter({
     'node.name:contains': 'o',
     'node.val:gt': 10
