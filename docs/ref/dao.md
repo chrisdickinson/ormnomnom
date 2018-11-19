@@ -79,6 +79,12 @@ like this:
 orm.fk(Model, {nullable: true})
 ```
 
+If you wish to override the foreign column name (from the default `${schemaKey}_id`), you can pass the `column` option, like this:
+
+```js
+orm.fk(Model, {column: 'model_uuid'})
+```
+
 ##### `orm.joi`
 
 The [joi][def-joi] version used by this installation of ORMnomnom. For use
