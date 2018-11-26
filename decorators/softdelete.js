@@ -60,8 +60,8 @@ module.exports = function (dao, opts = {}) {
       return super.filter(q)
     }
 
-    delete () {
-      return super.update({[column]: new Date()})
+    delete (query) {
+      return (query ? this.filter(query) : this).update({[column]: new Date()})
     }
   }
 
