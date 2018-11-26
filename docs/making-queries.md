@@ -203,7 +203,7 @@ const BookObjects = orm(Book, {
   author: orm.fk(Author)
 })
 
-const AuthorObjects(Author, {
+const AuthorObjects = orm(Author, {
   id: orm.joi.number(),
   name: orm.joi.string().required(),
   age: orm.joi.number(),
