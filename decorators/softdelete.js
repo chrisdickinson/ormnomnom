@@ -40,24 +40,30 @@ module.exports = function (dao, opts = {}) {
     }
 
     filter (query) {
-      const q = Object.assign({}, {[`${column}:isNull`]: true}, query)
+      const arrayedQuery = Array.isArray(query) ? query : [ query ]
 
-      for (const key in q) {
-        const path = key.split(':')[0]
-        const bits = path.split('.')
-        let ddl = wrappedDao[privateAPISym].ddl
-        for (let i = 0; i < bits.length - 1; ++i) {
-          const reference = bits[i]
-          if (!(reference in ddl) || !(softDeleteSym in ddl[reference].cls[clsToDAOSym])) {
-            continue
+      const queryResult = []
+      arrayedQuery.forEach(query => {
+        const q = Object.assign({}, { [`${column}:isNull`]: true }, query)
+
+        for (const key in q) {
+          const path = key.split(':')[0]
+          const bits = path.split('.')
+          let ddl = wrappedDao[privateAPISym].ddl
+          for (let i = 0; i < bits.length - 1; ++i) {
+            const reference = bits[i]
+            if (!(reference in ddl) || !(softDeleteSym in ddl[reference].cls[clsToDAOSym])) {
+              continue
+            }
+            const segment = bits.slice(0, i + 1)
+            q[`${segment.join('.')}.${ddl[reference].cls[clsToDAOSym][softDeleteSym]}:isNull`] = true
+            ddl = ddl[reference].cls[clsToDAOSym][privateAPISym].ddl
           }
-          const segment = bits.slice(0, i + 1)
-          q[`${segment.join('.')}.${ddl[reference].cls[clsToDAOSym][softDeleteSym]}:isNull`] = true
-          ddl = ddl[reference].cls[clsToDAOSym][privateAPISym].ddl
         }
-      }
+        queryResult.push(query)
+      })
 
-      return super.filter(q)
+      return super.filter(queryResult)
     }
 
     delete (query) {
