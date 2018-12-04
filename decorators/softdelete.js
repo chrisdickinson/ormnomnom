@@ -34,30 +34,39 @@ module.exports = function (dao, opts = {}) {
   const privateAPI = wrappedDao[privateAPISym]
   const queryset = privateAPI.getQuerySet()
 
+  const filterChildren = query => {
+    const q = Object.assign({}, { [`${column}:isNull`]: true }, query)
+
+    for (const key in q) {
+      const path = key.split(':')[0]
+      const bits = path.split('.')
+      let ddl = wrappedDao[privateAPISym].ddl
+      for (let i = 0; i < bits.length - 1; ++i) {
+        const reference = bits[i]
+        if (!(reference in ddl) || !(softDeleteSym in ddl[reference].cls[clsToDAOSym])) {
+          continue
+        }
+        const segment = bits.slice(0, i + 1)
+        q[`${segment.join('.')}.${ddl[reference].cls[clsToDAOSym][softDeleteSym]}:isNull`] = true
+        ddl = ddl[reference].cls[clsToDAOSym][privateAPISym].ddl
+      }
+    }
+
+    return q
+  }
+
+  const queryBuilder = query =>
+    Array.isArray(query)
+      ? query.map(q => filterChildren(q))
+      : filterChildren(query)
+
   class SoftDeleteQuerySet extends queryset.constructor {
     get (query) {
-      return super.get(Object.assign({}, {[`${column}:isNull`]: true}, query))
+      return super.get(queryBuilder(query))
     }
 
     filter (query) {
-      const q = Object.assign({}, {[`${column}:isNull`]: true}, query)
-
-      for (const key in q) {
-        const path = key.split(':')[0]
-        const bits = path.split('.')
-        let ddl = wrappedDao[privateAPISym].ddl
-        for (let i = 0; i < bits.length - 1; ++i) {
-          const reference = bits[i]
-          if (!(reference in ddl) || !(softDeleteSym in ddl[reference].cls[clsToDAOSym])) {
-            continue
-          }
-          const segment = bits.slice(0, i + 1)
-          q[`${segment.join('.')}.${ddl[reference].cls[clsToDAOSym][softDeleteSym]}:isNull`] = true
-          ddl = ddl[reference].cls[clsToDAOSym][privateAPISym].ddl
-        }
-      }
-
-      return super.filter(q)
+      return super.filter(queryBuilder(query))
     }
 
     delete (query) {
