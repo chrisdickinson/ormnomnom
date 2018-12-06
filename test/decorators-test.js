@@ -310,9 +310,8 @@ test('softdelete: all() filters soft deleted objects', assert => {
   })
 })
 
-test('softdelete: filter() extends queries to filter soft deleted objects', assert => {
+test('softdelete: filter() extends queries to filter soft deleted objects and arrays', assert => {
   Item.wrappedObjects = softDelete(Item.objects, {column: 'deleted'})
-
   return Item.objects.create({name: 'test'}).then(item => {
     return Item.wrappedObjects.delete({name: 'test'})
   }).then(deleted => {
@@ -323,20 +322,42 @@ test('softdelete: filter() extends queries to filter soft deleted objects', asse
     return Item.wrappedObjects.filter({name: 'test'})
   }).then(items => {
     assert.equals(items.length, 0, 'should return no rows')
+    return Item.wrappedObjects.filter([
+      {name: 'test'},
+      {name: 'not a name of any item'}
+    ])
+  }).then(items => {
+    assert.equals(items.length, 0, 'should return no rows with OR query')
   })
 })
 
-test('softdelete: get() extends queries to filter soft deleted objects', assert => {
+test('softdelete: get() extends queries to filter soft deleted objects and arrays', assert => {
   Item.wrappedObjects = softDelete(Item.objects, {column: 'deleted'})
 
   return Item.objects.create({name: 'test'}).then(item => {
     return Item.wrappedObjects.delete({name: 'test'})
   }).then(deleted => {
     assert.equals(deleted, 1, 'should have soft deleted one row')
+    test('get on softdelete should reject', assert => {
+      assert.plan(1)
+      assert.rejects(
+        Item.wrappedObjects.get({name: 'test'}),
+        Item.objects.NotFound
+      )
+    })
+    test('get on softdelete should reject with OR query', assert => {
+      assert.plan(1)
+      assert.rejects(
+        Item.wrappedObjects.get([
+          {name: 'test'},
+          {name: 'not a name of any item'}
+        ]),
+        Item.objects.NotFound
+      )
+    })
     return Item.objects.get({name: 'test'})
   }).then(item => {
     assert.notEqual(item.deleted, null, 'deleted column should be set')
-    assert.rejects(Item.wrappedObjects.get({name: 'test'}), Item.objects.NotFound)
   })
 })
 
@@ -354,11 +375,21 @@ test('softdelete: filters deleted joins', assert => {
           assert.notEqual(deleted.deleted, null, 'item should be soft deleted')
           return ItemDetail.wrappedObjects.filter({'item.name': 'test'})
         }).then(details => {
-          assert.equals(details.length, 0, 'should find no results due to deleted item')
+          assert.equals(details.length, 0, 'filter should find no results due to deleted item')
+          test('get should find no results due to deleted item', assert => {
+            assert.plan(1)
+            assert.rejects(
+              ItemDetail.wrappedObjects.get({'item.name': 'test'}),
+              ItemDetail.objects.NotFound
+            )
+          })
           return ItemDetail.wrappedObjects.filter({'item_prices.price:gt': 5})
         }).then(details => {
           assert.equals(details.length, 1, 'should find one result')
           assert.equals(details[0].id, detail.id, 'should have found the correct item detail')
+          return ItemDetail.wrappedObjects.get({'item_prices.price:gt': 5})
+        }).then(d => {
+          assert.equals(d.id, detail.id, 'get() should find one result')
         })
       })
     })
