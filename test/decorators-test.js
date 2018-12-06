@@ -338,22 +338,26 @@ test('softdelete: get() extends queries to filter soft deleted objects and array
     return Item.wrappedObjects.delete({name: 'test'})
   }).then(deleted => {
     assert.equals(deleted, 1, 'should have soft deleted one row')
+    test('get on softdelete should reject', assert => {
+      assert.plan(1)
+      assert.rejects(
+        Item.wrappedObjects.get({name: 'test'}),
+        Item.objects.NotFound
+      )
+    })
+    test('get on softdelete should reject with OR query', assert => {
+      assert.plan(1)
+      assert.rejects(
+        Item.wrappedObjects.get([
+          {name: 'test'},
+          {name: 'not a name of any item'}
+        ]),
+        Item.objects.NotFound
+      )
+    })
     return Item.objects.get({name: 'test'})
   }).then(item => {
     assert.notEqual(item.deleted, null, 'deleted column should be set')
-    assert.rejects(
-      Item.wrappedObjects.get({name: 'test'}),
-      Item.objects.NotFound,
-      'get on softdelete should reject'
-    )
-    assert.rejects(
-      Item.wrappedObjects.get([
-        {name: 'test'},
-        {name: 'not a name of any item'}
-      ]),
-      Item.objects.NotFound,
-      'get on softdelete should reject with OR query'
-    )
   })
 })
 
@@ -372,11 +376,13 @@ test('softdelete: filters deleted joins', assert => {
           return ItemDetail.wrappedObjects.filter({'item.name': 'test'})
         }).then(details => {
           assert.equals(details.length, 0, 'filter should find no results due to deleted item')
-          assert.rejects(
-            ItemDetail.wrappedObjects.get({'item.name': 'test'}),
-            ItemDetail.objects.NotFound,
-            'get should find no results due to deleted item'
-          )
+          test('get should find no results due to deleted item', assert => {
+            assert.plan(1)
+            assert.rejects(
+              ItemDetail.wrappedObjects.get({'item.name': 'test'}),
+              ItemDetail.objects.NotFound
+            )
+          })
           return ItemDetail.wrappedObjects.filter({'item_prices.price:gt': 5})
         }).then(details => {
           assert.equals(details.length, 1, 'should find one result')
