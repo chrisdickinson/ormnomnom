@@ -326,6 +326,16 @@ const fn = (ref, push) => {
 When called on a QuerySet, the queryset will be modified to select a single column, the
 result of the `aggregate` fn. Only the first row will be returned. 
 
+#### `QuerySet#connection(connection)`
+
+When running the query, use the provided Postgres Client instead of asking for a global
+postgres client. Does not return the client to the pool after use.
+
+```javascript
+const client = pg.connect()
+await MyModel.objects.connection(client).filter({blah: 'whatever'})
+```
+
 #### `QuerySet#annotate(obj)`
 
 `obj` should be of the form:

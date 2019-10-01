@@ -902,3 +902,21 @@ test('none() works as expected', assert => {
     assert.equal(results.length, 0)
   })
 })
+
+test('connection() uses the provided conn', async assert => {
+  let release
+  const conn = {
+    async query (what) {
+      const {connection, release: _release} = await db.getConnection()
+      release = _release
+      return connection.query(what)
+    }
+  }
+
+  try {
+    const items = await Node.objects.connection(conn).slice(0, 10)
+    assert.equal(items.length, 5)
+  } finally {
+    release()
+  }
+})
