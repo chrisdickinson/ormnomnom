@@ -34,7 +34,6 @@
     "@iterables/map": "^1.0.1",
     "@iterables/reduce": "^1.0.1",
     "@iterables/zip": "^1.0.2",
-    "bluebird": "^3.4.6",
     "concat-stream": "^1.6.0",
     "joi": "^13.1.0",
     "lodash.clonedeep": "^4.5.0",

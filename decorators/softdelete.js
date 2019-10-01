@@ -10,7 +10,7 @@ const DAO = require('..')
 const softDeleteSym = Symbol('soft_delete')
 
 module.exports = function (dao, opts = {}) {
-  if (!(dao instanceof DAO)) {
+  if (!(dao instanceof DAO.DAO)) {
     throw new Error('Expected instance of DAO')
   }
 

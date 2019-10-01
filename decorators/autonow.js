@@ -1,16 +1,16 @@
 'use strict'
 
 const clone = require('lodash.clonedeep')
-const Promise = require('bluebird')
 
 const symbols = require('../lib/shared-symbols')
 const privateAPISym = symbols.privateAPI
 const DAO = require('..')
+const { props } = require('../lib/promises')
 
 const autoNowSym = Symbol('auto_now')
 
 module.exports = function (dao, opts = {}) {
-  if (!(dao instanceof DAO)) {
+  if (!(dao instanceof DAO.DAO)) {
     throw new Error('Expected instance of DAO')
   }
 
@@ -41,8 +41,8 @@ module.exports = function (dao, opts = {}) {
     create (data) {
       const isBulk = Array.isArray(data)
       const getData = isBulk
-          ? Promise.all(data.map(xs => Promise.props(xs || {})))
-          : Promise.props(data || {}).then(xs => [xs])
+          ? Promise.all(data.map(xs => props(xs || {})))
+          : props(data || {}).then(xs => [xs])
 
       return getData.then(data => {
         const wrapped = data.map(props => {
@@ -61,7 +61,7 @@ module.exports = function (dao, opts = {}) {
         return super.update(data)
       }
 
-      return Promise.props(data || {}).then(props => {
+      return props(data || {}).then(props => {
         if (!(column in props) || !props[column]) {
           props[column] = new Date()
         }

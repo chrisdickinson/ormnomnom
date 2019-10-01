@@ -53,21 +53,10 @@ executed.
 An example of creating a connection follows:
 
 ```javascript
-const Promise = require('bluebird')
 const orm = require('ormnomnom')
 const pg = require('pg')
 
-orm.setConnection(function () {
-  const deferred = Promise.defer()
-  pg.connect({/* params */}, function (err, conn, done) {
-    if (err) {
-      return deferred.reject(err)
-    }
-    return deferred.resolve({connection: conn, release: done})
-  })
-  return deferred.promise
-})
-
+orm.setConnection(() => pg.connect())
 ```
 
 The next step is to [start defining models](./building-models.md)!

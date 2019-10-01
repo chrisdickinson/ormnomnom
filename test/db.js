@@ -6,7 +6,6 @@ module.exports = {
   getConnection: getConnection
 }
 
-const Promise = require('bluebird')
 const fs = require('fs')
 const ormnomnom = require('..')
 const path = require('path')

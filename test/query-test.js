@@ -1,6 +1,5 @@
 'use strict'
 
-const Promise = require('bluebird')
 const {beforeEach, afterEach, teardown, test} = require('tap')
 const {Writable} = require('stream')
 
@@ -19,9 +18,12 @@ test('test insert', assert => {
     assert.equal(xs.name, 'hello world')
     assert.equal(xs.val, 3)
     return db.getConnection().then(conn => {
-      return Promise.promisify(conn.connection.query.bind(conn.connection))(
+      return conn.connection.query(
         `select * from nodes where id=${xs.id}`
-      ).tap(() => conn.release())
+      ).then(results => {
+        conn.release()
+        return results
+      })
     }).then(results => {
       assert.deepEqual(results.rows, [{
         id: xs.id,
@@ -100,9 +102,12 @@ test('test insert (skips keys that arent columns)', assert => {
     assert.equal(xs.val, 3)
     assert.notOk(xs.bananas)
     return db.getConnection().then(conn => {
-      return Promise.promisify(conn.connection.query.bind(conn.connection))(
+      return conn.connection.query(
         `select * from nodes where id=${xs.id}`
-      ).tap(() => conn.release())
+      ).then(results => {
+        conn.release()
+        return results
+      })
     }).then(results => {
       assert.deepEqual(results.rows, [{
         id: xs.id,
@@ -154,9 +159,12 @@ test('test update (none affected)', assert => {
       assert.equal(xs, 0)
       return db.getConnection()
     }).then(conn => {
-      return Promise.promisify(conn.connection.query.bind(conn.connection))(
+      return conn.connection.query(
         'select * from nodes where name = \'janis joplin\''
-      ).tap(() => conn.release())
+      ).then(xs => {
+        conn.release()
+        return xs
+      })
     }).then(results => {
       assert.deepEqual(results.rows, [], 'independently verify presence in db')
     })
@@ -182,9 +190,12 @@ test('test update (one affected)', assert => {
       assert.deepEqual(xs, 1)
       return db.getConnection()
     }).then(conn => {
-      return Promise.promisify(conn.connection.query.bind(conn.connection))(
+      return conn.connection.query(
         'select * from nodes where name = \'gary busey\''
-      ).tap(() => conn.release())
+      ).then(xs => {
+        conn.release()
+        return xs
+      })
     }).then(results => {
       assert.deepEqual(results.rows, [{
         id: 1,
@@ -206,9 +217,12 @@ test('test update (one affected, with join)', assert => {
       assert.deepEqual(xs, 1)
       return db.getConnection()
     }).then(conn => {
-      return Promise.promisify(conn.connection.query.bind(conn.connection))(
+      return conn.connection.query(
         'select * from refs where val=1000'
-      ).tap(() => conn.release())
+      ).then(xs => {
+        conn.release()
+        return xs
+      })
     }).then(results => {
       assert.match(results.rows, [{
         node_id: 4,
@@ -222,9 +236,12 @@ test('test update (all affected)', assert => {
     assert.deepEqual(xs, 5)
     return db.getConnection()
   }).then(conn => {
-    return Promise.promisify(conn.connection.query.bind(conn.connection))(
+    return conn.connection.query(
       'select * from nodes'
-    ).tap(() => conn.release())
+    ).then(xs => {
+      conn.release()
+      return xs
+    })
   }).then(results => {
     assert.match(results.rows, [{
       id: 1,
@@ -258,9 +275,12 @@ test('test filter with delete', assert => {
       assert.deepEqual(xs, 0)
       return db.getConnection()
     }).then(conn => {
-      return Promise.promisify(conn.connection.query.bind(conn.connection))(
+      return conn.connection.query(
         'select * from nodes'
-      ).tap(() => conn.release())
+      ).then(xs => {
+        conn.release()
+        return xs
+      })
     }).then(results => {
       assert.deepEqual(results.rows.length, 5, 'verify all rows still exists')
     })
@@ -273,9 +293,12 @@ test('test delete', assert => {
       assert.deepEqual(xs, 1)
       return db.getConnection()
     }).then(conn => {
-      return Promise.promisify(conn.connection.query.bind(conn.connection))(
+      return conn.connection.query(
         'select * from nodes'
-      ).tap(() => conn.release())
+      ).then(xs => {
+        conn.release()
+        return xs
+      })
     }).then(results => {
       assert.deepEqual(results.rows.length, 4, 'verify one row is removed')
       assert.notOk(results.rows.find(row => row.id === 1), 'verify correct node is removed')
@@ -289,9 +312,12 @@ test('test delete with or', assert => {
       assert.deepEqual(xs, 2)
       return db.getConnection()
     }).then(conn => {
-      return Promise.promisify(conn.connection.query.bind(conn.connection))(
+      return conn.connection.query(
         'select * from nodes'
-      ).tap(() => conn.release())
+      ).then(xs => {
+        conn.release()
+        return xs
+      })
     }).then(results => {
       assert.deepEqual(results.rows.length, 3, 'verify one row is removed')
       assert.notOk(results.rows.find(row => row.id === 1), 'verify node 1 is removed')
@@ -564,14 +590,14 @@ test('test count', assert => {
 })
 
 test('test getOrCreate already exists', assert => {
-  return Node.objects.getOrCreate({name: 'Gary busey', val: -10}).spread((created, xs) => {
+  return Node.objects.getOrCreate({name: 'Gary busey', val: -10}).then(([created, xs]) => {
     assert.equal(created, false)
     assert.equal(xs.name, 'Gary busey')
   })
 })
 
 test('test getOrCreate does not exist', assert => {
-  return Node.objects.getOrCreate({name: 'johnny five', val: 100}).spread((created, xs) => {
+  return Node.objects.getOrCreate({name: 'johnny five', val: 100}).then(([created, xs]) => {
     assert.equal(created, true)
     assert.equal(xs.name, 'johnny five')
   })
@@ -583,7 +609,7 @@ test('test getOrCreate multiple objects returned', assert => {
     val: 0xdeadbeef
   })
 
-  return Node.objects.getOrCreate({name: cloneBusey.get('name')}).then(() => {
+  return Node.objects.getOrCreate({name: cloneBusey.then(xs => xs.name)}).then(() => {
     throw new Error('should throw exception')
   }, err => {
     assert.equal(err.constructor, Node.objects.MultipleObjectsReturned)
@@ -600,9 +626,13 @@ test('test get fails on multiple objects returned', assert => {
 
 test('test get fails on zero objects returned', assert => {
   return Node.objects.get({'name': 'ford prefect'})
-  .catch(Node.objects.NotFound, err => {
-    assert.equal(err.message, 'Node not found')
-    assert.ok(err instanceof ormnomnom.NotFound)
+  .catch(err => {
+    if (err instanceof Node.objects.NotFound) {
+      assert.equal(err.message, 'Node not found')
+      assert.ok(err instanceof ormnomnom.NotFound)
+    } else {
+      throw err
+    }
   })
 })
 
@@ -703,7 +733,7 @@ test('test group (no column specified)', assert => {
 
   return getRefs.then(refs => {
     return Node.objects.filter({
-      id: getNode.get('id'),
+      id: getNode.then(({id}) => id),
       'refs.id:isNull': false
     }).group().annotate({
       nerds (ref) {
@@ -728,7 +758,7 @@ test('test group (no column specified, nonvalues)', assert => {
 
   const getRefs = Ref.objects.create(Array.from(Array(10)).map((xs, idx) => {
     return {
-      node: getNode.get(idx & 1),
+      node: getNode.then(xs => xs[idx & 1]),
       val: idx
     }
   }))
@@ -765,8 +795,10 @@ test('join delete', assert => {
       node: getNode,
       val: idx
     }
-  })).then().map(xs => {
-    return Farout.objects.create({ref: xs})
+  })).then(results => {
+    return Promise.all(results.map(xs => {
+      return Farout.objects.create({ref: xs})
+    }))
   })
 
   return getRefs.then(() => {
@@ -782,7 +814,7 @@ test('empty AND', assert => {
   return Promise.all([
     Node.objects.filter({}).order('id'),
     Node.objects.all().order('id')
-  ]).spread((lhs, rhs) => {
+  ]).then(([lhs, rhs]) => {
     assert.deepEqual(lhs, rhs)
   })
 })
@@ -791,7 +823,7 @@ test('empty OR', assert => {
   return Promise.all([
     Node.objects.filter([]).order('id'),
     Node.objects.all().order('id')
-  ]).spread((lhs, rhs) => {
+  ]).then(([lhs, rhs]) => {
     assert.deepEqual(lhs, rhs)
   })
 })

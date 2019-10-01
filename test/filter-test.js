@@ -1,6 +1,5 @@
 'use strict'
 
-const Promise = require('bluebird')
 const {beforeEach, afterEach, teardown, test} = require('tap')
 
 const ormnomnom = require('..')
