@@ -270,15 +270,18 @@ test('softdelete: throws when trying to attach to a second column', assert => {
   assert.end()
 })
 
-test('softdelete: original dao is not modified', assert => {
+test('softdelete: original dao is not modified', async assert => {
   Item.wrappedObjects = softDelete(Item.objects, {column: 'deleted'})
 
-  return Item.objects.create({name: 'test'}).then(item => {
-    return Item.objects.delete({name: 'test'}).then(deleted => {
-      assert.equals(deleted, 1, 'should have deleted one row')
-      assert.rejects(Item.objects.get({name: 'test'}), Item.objects.NotFound)
-    })
-  })
+  await Item.objects.create({name: 'test'})
+  const deleted = await Item.objects.delete({name: 'test'})
+  assert.equals(deleted, 1, 'should have deleted one row')
+
+  try {
+    await Item.objects.get({name: 'test'})
+  } catch (err) {
+    assert.type(err, Item.objects.NotFound)
+  }
 })
 
 test('softdelete: sets a value to deleted column when trying to delete', assert => {
@@ -338,22 +341,24 @@ test('softdelete: get() extends queries to filter soft deleted objects and array
     return Item.wrappedObjects.delete({name: 'test'})
   }).then(deleted => {
     assert.equals(deleted, 1, 'should have soft deleted one row')
-    test('get on softdelete should reject', assert => {
+    test('get on softdelete should reject', async assert => {
       assert.plan(1)
-      assert.rejects(
-        Item.wrappedObjects.get({name: 'test'}),
-        Item.objects.NotFound
-      )
+      try {
+        await Item.wrappedObjects.get({name: 'test'})
+      } catch (err) {
+        assert.type(err, Item.objects.NotFound)
+      }
     })
-    test('get on softdelete should reject with OR query', assert => {
+    test('get on softdelete should reject with OR query', async assert => {
       assert.plan(1)
-      assert.rejects(
-        Item.wrappedObjects.get([
+      try {
+        await Item.wrappedObjects.get([
           {name: 'test'},
           {name: 'not a name of any item'}
-        ]),
-        Item.objects.NotFound
-      )
+        ])
+      } catch (err) {
+        assert.type(err, Item.objects.NotFound)
+      }
     })
     return Item.objects.get({name: 'test'})
   }).then(item => {
@@ -376,12 +381,13 @@ test('softdelete: filters deleted joins', assert => {
           return ItemDetail.wrappedObjects.filter({'item.name': 'test'})
         }).then(details => {
           assert.equals(details.length, 0, 'filter should find no results due to deleted item')
-          test('get should find no results due to deleted item', assert => {
+          test('get should find no results due to deleted item', async assert => {
             assert.plan(1)
-            assert.rejects(
-              ItemDetail.wrappedObjects.get({'item.name': 'test'}),
-              ItemDetail.objects.NotFound
-            )
+            try {
+              await ItemDetail.wrappedObjects.get({'item.name': 'test'})
+            } catch (err) {
+              assert.type(err, ItemDetail.objects.NotFound)
+            }
           })
           return ItemDetail.wrappedObjects.filter({'item_prices.price:gt': 5})
         }).then(details => {
