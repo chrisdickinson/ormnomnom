@@ -18,12 +18,9 @@ test('test insert', assert => {
     assert.equal(xs.name, 'hello world')
     assert.equal(xs.val, 3)
     return db.getConnection().then(conn => {
-      return conn.connection.query(
+      return conn.query(
         `select * from nodes where id=${xs.id}`
-      ).then(results => {
-        conn.release()
-        return results
-      })
+      )
     }).then(results => {
       assert.deepEqual(results.rows, [{
         id: xs.id,
@@ -102,12 +99,9 @@ test('test insert (skips keys that arent columns)', assert => {
     assert.equal(xs.val, 3)
     assert.notOk(xs.bananas)
     return db.getConnection().then(conn => {
-      return conn.connection.query(
+      return conn.query(
         `select * from nodes where id=${xs.id}`
-      ).then(results => {
-        conn.release()
-        return results
-      })
+      )
     }).then(results => {
       assert.deepEqual(results.rows, [{
         id: xs.id,
@@ -159,12 +153,9 @@ test('test update (none affected)', assert => {
       assert.equal(xs, 0)
       return db.getConnection()
     }).then(conn => {
-      return conn.connection.query(
+      return conn.query(
         'select * from nodes where name = \'janis joplin\''
-      ).then(xs => {
-        conn.release()
-        return xs
-      })
+      )
     }).then(results => {
       assert.deepEqual(results.rows, [], 'independently verify presence in db')
     })
@@ -190,12 +181,9 @@ test('test update (one affected)', assert => {
       assert.deepEqual(xs, 1)
       return db.getConnection()
     }).then(conn => {
-      return conn.connection.query(
+      return conn.query(
         'select * from nodes where name = \'gary busey\''
-      ).then(xs => {
-        conn.release()
-        return xs
-      })
+      )
     }).then(results => {
       assert.deepEqual(results.rows, [{
         id: 1,
@@ -217,12 +205,9 @@ test('test update (one affected, with join)', assert => {
       assert.deepEqual(xs, 1)
       return db.getConnection()
     }).then(conn => {
-      return conn.connection.query(
+      return conn.query(
         'select * from refs where val=1000'
-      ).then(xs => {
-        conn.release()
-        return xs
-      })
+      )
     }).then(results => {
       assert.match(results.rows, [{
         node_id: 4,
@@ -236,12 +221,9 @@ test('test update (all affected)', assert => {
     assert.deepEqual(xs, 5)
     return db.getConnection()
   }).then(conn => {
-    return conn.connection.query(
+    return conn.query(
       'select * from nodes'
-    ).then(xs => {
-      conn.release()
-      return xs
-    })
+    )
   }).then(results => {
     assert.match(results.rows, [{
       id: 1,
@@ -275,12 +257,9 @@ test('test filter with delete', assert => {
       assert.deepEqual(xs, 0)
       return db.getConnection()
     }).then(conn => {
-      return conn.connection.query(
+      return conn.query(
         'select * from nodes'
-      ).then(xs => {
-        conn.release()
-        return xs
-      })
+      )
     }).then(results => {
       assert.deepEqual(results.rows.length, 5, 'verify all rows still exists')
     })
@@ -293,12 +272,9 @@ test('test delete', assert => {
       assert.deepEqual(xs, 1)
       return db.getConnection()
     }).then(conn => {
-      return conn.connection.query(
+      return conn.query(
         'select * from nodes'
-      ).then(xs => {
-        conn.release()
-        return xs
-      })
+      )
     }).then(results => {
       assert.deepEqual(results.rows.length, 4, 'verify one row is removed')
       assert.notOk(results.rows.find(row => row.id === 1), 'verify correct node is removed')
@@ -312,12 +288,9 @@ test('test delete with or', assert => {
       assert.deepEqual(xs, 2)
       return db.getConnection()
     }).then(conn => {
-      return conn.connection.query(
+      return conn.query(
         'select * from nodes'
-      ).then(xs => {
-        conn.release()
-        return xs
-      })
+      )
     }).then(results => {
       assert.deepEqual(results.rows.length, 3, 'verify one row is removed')
       assert.notOk(results.rows.find(row => row.id === 1), 'verify node 1 is removed')
@@ -936,19 +909,13 @@ test('none() works as expected', assert => {
 })
 
 test('connection() uses the provided conn', async assert => {
-  let release
   const conn = {
     async query (what) {
-      const {connection, release: _release} = await db.getConnection()
-      release = _release
-      return connection.query(what)
+      const conn = await db.getConnection()
+      return conn.query(what)
     }
   }
 
-  try {
-    const items = await Node.objects.connection(conn).slice(0, 10)
-    assert.equal(items.length, 5)
-  } finally {
-    release()
-  }
+  const items = await Node.objects.connection(conn).slice(0, 10)
+  assert.equal(items.length, 5)
 })

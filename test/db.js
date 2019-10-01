@@ -29,7 +29,7 @@ function createdb () {
     return pgtools.createdb({}, TEST_DB_NAME)
   }).then(() => {
     return getConnection().then(client => {
-      return client.connection.query(fs.readFileSync(path.join(__dirname, 'fixture.sql'), {encoding: 'utf8'})).then(() => client.connection.end())
+      return client.query(fs.readFileSync(path.join(__dirname, 'fixture.sql'), {encoding: 'utf8'})).then(() => client.end())
     })
   })
 }
@@ -37,43 +37,32 @@ function createdb () {
 function setup (beforeEach, afterEach, teardown) {
   beforeEach(function () {
     return getConnection().then(client => {
-      return client.connection.query('BEGIN')
+      return client.query('BEGIN')
     })
   })
 
   afterEach(function () {
     return getConnection().then(client => {
-      return client.connection.query('ROLLBACK')
+      return client.query('ROLLBACK')
     })
   })
 
   teardown(function () {
     return getConnection().then(client => {
-      return client.connection.end()
+      return client.end()
     })
   })
 
   ormnomnom.setConnection(getConnection)
 }
 
-function getConnection (commit) {
-  return new Promise((resolve, reject) => {
-    if (connected) {
-      return resolve({
-        connection: client,
-        release: () => {}
-      })
-    }
+async function getConnection (commit) {
+  if (connected) {
+    return client
+  }
 
-    client.connect()
-    client.once('error', reject)
-    client.once('connect', () => {
-      client.removeListener('error', reject)
-      connected = true
-      resolve({
-        connection: client,
-        release: () => {}
-      })
-    })
-  })
+  await client.connect()
+  connected = true
+
+  return client
 }

@@ -45,10 +45,9 @@ issue](https://github.com/chrisdickinson/ormnomnom/issues/new).
 ## Setting up a Connection
 
 ORMnomnom does not know how to get a postgres connection out of the box — your
-application is in charge of telling ORMnomnom how to attain a connection as
-well as how to release it. ORMnomnom will try to attain a connection whenever a
-query is about to be run, and will release that connection after the query has
-executed.
+application is in charge of telling ORMnomnom how to attain a connection.
+ORMnomnom will try to attain a connection whenever a query is about to be run,
+and will release that connection after the query has executed.
 
 An example of creating a connection follows:
 

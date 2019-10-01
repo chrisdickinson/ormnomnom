@@ -215,7 +215,6 @@ test('test filter by OR', assert => {
   }]).raw()
 
   return getSQL.then(raw => {
-    raw.release()
     assert.ok(
       raw.sql.indexOf(
         'WHERE ("nodes"."name" = $1 OR "nodes"."name" = $2)'
@@ -237,7 +236,6 @@ test('test filter by OR+promise', assert => {
   }]).raw()
 
   return getSQL.then(raw => {
-    raw.release()
     assert.ok(
       raw.sql.indexOf(
         'WHERE ("nodes"."name" = $1 OR "nodes"."name" = $2)'

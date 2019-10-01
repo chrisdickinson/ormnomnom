@@ -22,13 +22,11 @@ set of their results.
 const orm = require('ormnomnom')
 ```
 
-##### `orm.setConnection(Function → Promise<{connection, release}>)`
+##### `orm.setConnection(Function → Promise<pg.Client>)`
 
 This method provides ORMnomnom with a user-supplied function to call for
 attaining database connections. The function provided should return a promise
-for an object with two properties, `connection` and `release`. `connection` should
-be a [pg][def-pg] [`Client`][def-pg-client] object. `release` should be a function
-that returns `Client` to a pool, or shuts the client down.
+for a [pg][def-pg] [`Client`][def-pg-client] object.
 
 ```javascript
 const orm = require('ormnomnom')
@@ -36,14 +34,7 @@ const pg = require('pg')
 
 // use pg's built-in connection pooling
 orm.setConnection(() => {
-  return new Promise((resolve, reject) => {
-    pg.connect('postgres://localhost/database', (err, connection, release) => {
-      if (err) {
-        return reject(err)
-      }
-      return resolve({connection, release})
-    })
-  })
+  return pg.connect('postgres://localhost/database')
 })
 ```
 
@@ -62,9 +53,7 @@ $ ORMNOMNOM_LOG_QUERIES=Package,User node path/to/our/program.js
 # ... only queries from the Package and User models are logged
 ```
 
-`ORMNOMNOM_TRACE_QUERIES` may also be used and will include a stack
-trace -- it's best to use this in conjunction with
-`BLUEBIRD_LONG_STACK_TRACES`.
+`ORMNOMNOM_TRACE_QUERIES` may also be used and will include a stack trace.
 
 ##### `orm(Model, Schema[, options]) → DAO<Model>`
 
