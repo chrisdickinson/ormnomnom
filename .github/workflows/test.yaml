@@ -4,6 +4,11 @@ on: [push]
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:11
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
  
     steps:
     - uses: actions/checkout@v1
@@ -14,3 +19,6 @@ jobs:
       run: npm ci
     - name: npm test
       run: npm test
+      env:
+        PGHOST: 127.0.0.1
+        PGUSER: postgres
