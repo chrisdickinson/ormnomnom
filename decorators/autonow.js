@@ -41,8 +41,8 @@ module.exports = function (dao, opts = {}) {
     create (data) {
       const isBulk = Array.isArray(data)
       const getData = isBulk
-          ? Promise.all(data.map(xs => props(xs || {})))
-          : props(data || {}).then(xs => [xs])
+        ? Promise.all(data.map(xs => props(xs || {})))
+        : props(data || {}).then(xs => [xs])
 
       return getData.then(data => {
         const wrapped = data.map(props => {

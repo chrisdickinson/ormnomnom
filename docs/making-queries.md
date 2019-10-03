@@ -197,16 +197,16 @@ class Author {
 }
 
 const BookObjects = orm(Book, {
-  id: orm.joi.number(),
-  title: orm.joi.string().required(),
-  publish_date: orm.joi.date(),
+  id: { type: 'integer' },
+  title: { type: 'string' },
+  publish_date: { anyOf: [{type: 'null'}, {type: 'string', format: 'date-time'}], default: null }
   author: orm.fk(Author)
 })
 
 const AuthorObjects = orm(Author, {
-  id: orm.joi.number(),
-  name: orm.joi.string().required(),
-  age: orm.joi.number(),
+  id: { type: 'integer' },
+  name: { type: 'string' },
+  age: { anyOf: [{type: 'null'}, {type: 'number'}], default: null }
 })
 ```
 
@@ -252,8 +252,8 @@ class Review {
   // ...
 }
 const ReviewObjects = orm(Review, {
-  id: orm.joi.number(),
-  rating: orm.joi.number().required(),
+  id: { type: 'integer' },
+  rating: { type: 'number' },
   book: orm.fk(Book)
 })
 

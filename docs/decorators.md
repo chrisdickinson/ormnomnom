@@ -23,12 +23,12 @@ class Book {
 }
 
 Book.rawObjects = orm(Book, {
-  id: orm.joi.number(),
-  created: orm.joi.date(),
-  updated: orm.joi.date(),
-  deleted: orm.joi.date(),
-  title: orm.joi.string().required(),
-  byline: orm.joi.string()
+  id: { type: 'integer' },
+  created: { anyOf: [{ type: 'null'}, { type: 'string', format: 'date-time' }], default: null },
+  updated: { anyOf: [{ type: 'null'}, { type: 'string', format: 'date-time' }], default: null },
+  deleted: { anyOf: [{ type: 'null'}, { type: 'string', format: 'date-time' }], default: null },
+  title: { type: 'string' },
+  byline: { type: 'string' }
 })
 
 Book.objects = autoNow(Book.rawObjects, {column: 'created', createOnly: true}) // createOnly defaults to false

@@ -22,10 +22,10 @@ class Book {
 }
 
 const BookObjects = orm(Book, {
-  id: orm.joi.number(),
-  title: orm.joi.string().required(),
-  publish_date: orm.joi.date(),
-  byline: orm.joi.string()
+  id: { type: 'integer' },
+  title: { type: 'string' },
+  publish_date: { anyOf: [ { type: 'null' }, { type: 'string', format: 'date' } ], default: null },
+  byline: { anyOf: [ { type: 'null' }, { type: 'string' } ], default: null }
 })
 ```
 

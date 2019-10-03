@@ -70,12 +70,12 @@ module.exports = function (dao, opts = {}) {
     }
 
     delete (query) {
-      return (query ? this.filter(query) : this).update({[column]: new Date()})
+      return (query ? this.filter(query) : this).update({ [column]: new Date() })
     }
   }
 
   wrappedDao.all = function () {
-    return this.getQuerySet().filter({[`${column}:isNull`]: true})
+    return this.getQuerySet().filter({ [`${column}:isNull`]: true })
   }.bind(wrappedDao)
 
   privateAPI.getQuerySet = function () {

@@ -7,11 +7,11 @@
     "update-contrib": "weallcontribute -o . && git add CONTRIBUTING.md && git commit -m 'docs(contributing): updated CONTRIBUTING.md'",
     "update-coc": "weallbehave -o . && git add CODE_OF_CONDUCT.md && git commit -m 'docs(coc): updated CODE_OF_CONDUCT.md'",
     "prerelease": "npm run update-contrib && npm run update-coc",
-    "release": "standard-version",
     "pretest": "node -e 'require(\"./test/db\").createdb()'",
     "test": "TZ=UTC tap test/*-test.js",
-    "posttest": "standard",
+    "posttest": "npm run lint",
     "pretest-cov": "npm run pretest",
+    "lint": "standard",
     "test-cov": "TZ=UTC tap --cov test/*-test.js",
     "posttest-cov": "npm run posttest",
     "test-cov-html": "TZ=UTC tap --coverage-report=html test/*-test.js"
@@ -34,8 +34,7 @@
     "@iterables/map": "^1.0.1",
     "@iterables/reduce": "^1.0.1",
     "@iterables/zip": "^1.0.2",
-    "concat-stream": "^1.6.0",
-    "joi": "^13.1.0",
+    "ajv": "^6.10.2",
     "lodash.clonedeep": "^4.5.0",
     "pg-query-stream": "^1.0.0",
     "quotemeta": "0.0.0"
@@ -43,8 +42,7 @@
   "devDependencies": {
     "pg": "^7.4.1",
     "pgtools": "^0.3.0",
-    "standard": "^10.0.1",
-    "standard-version": "^4.3.0",
+    "standard": "^14.3.1",
     "tap": "^14.6.9",
     "weallbehave": "^1.0.3",
     "weallcontribute": "^1.0.8"

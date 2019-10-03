@@ -22,15 +22,15 @@ class Author {
 }
 
 const PackageObjects = orm(Package, {
-  id: orm.joi.number(),
-  name: orm.joi.string().lowercase().required(),
+  id: { type: 'integer' },
+  name: { type: 'string', pattern: '^[a-z0-9]$'},
   author: orm.fk(Author)
 })
 
 const AuthorObjects = orm(Author, {
-  id: orm.joi.number(),
-  name: orm.joi.string().lowercase().required(),
-  email: orm.joi.string().email().required()
+  id: { type: 'integer' },
+  name: { type: 'string', pattern: '^[a-z0-9]$'},
+  email: { type: 'string', format: 'email'}
 })
 
 PackageObjects.filter({'author.name:startsWith': 'Gary'}).then(objects => {

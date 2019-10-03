@@ -1,10 +1,10 @@
 'use strict'
 
-const {beforeEach, afterEach, teardown, test} = require('tap')
+const { beforeEach, afterEach, teardown, test } = require('tap')
 
 const ormnomnom = require('..')
 const db = require('./db')
-const {Node, Ref} = require('./models')
+const { Node, Ref } = require('./models')
 
 db.setup(beforeEach, afterEach, teardown)
 
@@ -82,7 +82,7 @@ const filterTests = [{
   query: Ref.objects.filter([{
     'node.name': 'HELLO'
   }, {
-    'val': 0
+    val: 0
   }]),
   expect: [1, 2, 3]
 }, {
@@ -144,7 +144,7 @@ const filterTests = [{
   query: Node.objects.all().order(['val', '-id']),
   expect: [2, 1, 5, 4, 3]
 }, {
-  query: Node.objects.exclude({'name:iContains': 'o'}),
+  query: Node.objects.exclude({ 'name:iContains': 'o' }),
   expect: [2]
 }]
 
@@ -171,12 +171,12 @@ test('test invalid fk filter: not a model', assert => {
   }
 
   const RefObjects = ormnomnom(Ref, {
-    'id': ormnomnom.joi.number(),
-    'node': ormnomnom.fk(FakeNode),
-    'val': ormnomnom.joi.number().required()
+    id: { type: 'integer' },
+    node: ormnomnom.fk(FakeNode),
+    val: { type: 'integer' }
   })
 
-  return RefObjects.filter({'node.id': 3}).then(() => {
+  return RefObjects.filter({ 'node.id': 3 }).then(() => {
     throw new Error('expected error')
   }, err => {
     assert.equal(err.message, 'No DAO registered for FakeNode')
@@ -184,7 +184,7 @@ test('test invalid fk filter: not a model', assert => {
 })
 
 test('test invalid fk filter: not a fk', assert => {
-  return Ref.objects.filter({'val.id': 3}).then(() => {
+  return Ref.objects.filter({ 'val.id': 3 }).then(() => {
     throw new Error('expected error')
   }, err => {
     assert.equal(err.message, 'val is not a join-able column')
@@ -198,9 +198,9 @@ test('test order + count', assert => {
 })
 
 test('test filter by foreign instance', assert => {
-  const getNode = Node.objects.get({name: 'Gary busey'})
+  const getNode = Node.objects.get({ name: 'Gary busey' })
   const getRefs = getNode.then(node => {
-    return Ref.objects.filter({node}).valuesList('id')
+    return Ref.objects.filter({ node }).valuesList('id')
   })
   return getRefs.then(ids => {
     assert.deepEqual(ids, [2])
@@ -251,7 +251,7 @@ test('test filter by OR+promise', assert => {
 
 test('test filter by foreign promise', assert => {
   const getRefs = Ref.objects.filter({
-    node: Node.objects.get({name: 'Gary busey'})
+    node: Node.objects.get({ name: 'Gary busey' })
   }).valuesList('id')
   return getRefs.then(ids => {
     assert.deepEqual(ids, [2])
@@ -270,7 +270,7 @@ test('test :in on empty array', assert => {
 })
 
 test('test chaining filters', assert => {
-  return Node.objects.filter({id: 1}).filter({name: 'HELLO'}).then(xs => {
+  return Node.objects.filter({ id: 1 }).filter({ name: 'HELLO' }).then(xs => {
     assert.deepEquals(xs, [{
       id: 1,
       name: 'HELLO',
@@ -280,7 +280,7 @@ test('test chaining filters', assert => {
 })
 
 test('test converts falsey filter to match all', assert => {
-  return Node.objects.filter([{id: 1}, null]).sql.then(xs => {
+  return Node.objects.filter([{ id: 1 }, null]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE ("nodes"."id" = $1 OR 1=1)')
   })
 })
@@ -316,7 +316,7 @@ test('test select with or with two empty objects', assert => {
 })
 
 test('test select with or with one filter and one empty object', assert => {
-  return Node.objects.filter([{id: 1}, {}]).sql.then(xs => {
+  return Node.objects.filter([{ id: 1 }, {}]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE ("nodes"."id" = $1 OR 1=1)')
   })
 })
@@ -352,7 +352,7 @@ test('test select with or with two empty objects as exclude', assert => {
 })
 
 test('test select with or with one filter and one empty object as exclude', assert => {
-  return Node.objects.exclude([{id: 1}, {}]).sql.then(xs => {
+  return Node.objects.exclude([{ id: 1 }, {}]).sql.then(xs => {
     assert.equals(xs, 'SELECT "nodes"."id" AS "nodes.id", "nodes"."name" AS "nodes.name", "nodes"."val" AS "nodes.val" FROM "nodes" "nodes"  WHERE NOT ("nodes"."id" = $1 OR 1=1)')
   })
 })

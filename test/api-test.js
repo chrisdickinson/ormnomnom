@@ -1,6 +1,6 @@
 'use strict'
 
-const {beforeEach, afterEach, teardown, test} = require('tap')
+const { beforeEach, afterEach, teardown, test } = require('tap')
 
 const ormnomnom = require('..')
 const db = require('./db')
@@ -11,7 +11,7 @@ test('produces expected table name', assert => {
   class TestFoo {
   }
   const objects = ormnomnom(TestFoo, {
-    id: ormnomnom.joi.number()
+    id: { type: 'integer' }
   })
   return objects.all().sql.then(sql => {
     assert.ok(/"test_foos"/g.test(sql))
@@ -22,7 +22,7 @@ test('throws if passed to two ormnomnoms', assert => {
   class TestFoo {
   }
   ormnomnom(TestFoo, {
-    id: ormnomnom.joi.number()
+    id: { type: 'integer' }
   })
 
   assert.throws(() => {
@@ -39,7 +39,7 @@ test('correctly resolves foreign key classes when passed before assigned a dao',
   }
 
   TestFoo.objects = ormnomnom(TestFoo, {
-    id: ormnomnom.joi.number(),
+    id: { type: 'integer' },
     sub: ormnomnom.fk(TestSubFoo)
   })
 
@@ -50,7 +50,7 @@ test('correctly resolves foreign key classes when passed before assigned a dao',
   assert.equals(Object.getOwnPropertySymbols(TestFoo.objects[privateAPISym].ddl.sub.cls).length, 0, 'should have no symbols')
 
   TestSubFoo.objects = ormnomnom(TestSubFoo, {
-    id: ormnomnom.joi.number()
+    id: { type: 'integer' }
   })
 
   assert.equals(Object.getOwnPropertySymbols(TestFoo.objects[privateAPISym].ddl.sub.cls).length, 1, 'should have one symbol')

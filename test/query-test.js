@@ -1,10 +1,10 @@
 'use strict'
 
-const {beforeEach, afterEach, teardown, test} = require('tap')
-const {Writable} = require('stream')
+const { beforeEach, afterEach, teardown, test } = require('tap')
+const { Writable } = require('stream')
 
 const ormnomnom = require('..')
-const {Node, Ref, Farout} = require('./models')
+const { Node, Ref, Farout } = require('./models')
 const db = require('./db')
 
 db.setup(beforeEach, afterEach, teardown)
@@ -147,8 +147,8 @@ test('test insert fails when primary key conflicts (no description available)', 
 
 test('test update (none affected)', assert => {
   return Node.objects
-    .filter({'val:gt': 30000})
-    .update({val: 10, name: 'janis joplin'})
+    .filter({ 'val:gt': 30000 })
+    .update({ val: 10, name: 'janis joplin' })
     .then(xs => {
       assert.equal(xs, 0)
       return db.getConnection()
@@ -168,15 +168,15 @@ test('test update with missing data', assert => {
 })
 
 test('test update', assert => {
-  return Node.objects.filter({id: 1}).update([{name: 'janis joplin'}, null]).catch(err => {
+  return Node.objects.filter({ id: 1 }).update([{ name: 'janis joplin' }, null]).catch(err => {
     assert.equals(err.message, 'Attempted update of Node object with no data')
   })
 })
 
 test('test update (one affected)', assert => {
   return Node.objects
-    .filter({'val': 3})
-    .update({val: 10, name: 'gary busey'})
+    .filter({ val: 3 })
+    .update({ val: 10, name: 'gary busey' })
     .then(xs => {
       assert.deepEqual(xs, 1)
       return db.getConnection()
@@ -194,11 +194,11 @@ test('test update (one affected)', assert => {
 })
 
 test('test update (one affected, with join)', assert => {
-  return Ref.objects.create({val: 0, node: Node.objects.get({name: 'Mona Lisa'})})
+  return Ref.objects.create({ val: 0, node: Node.objects.get({ name: 'Mona Lisa' }) })
     .then(() => {
       const subquery = Ref.objects
-        .filter({'node.val': 100})
-        .update({val: 1000})
+        .filter({ 'node.val': 100 })
+        .update({ val: 1000 })
 
       return subquery
     }).then(xs => {
@@ -217,7 +217,7 @@ test('test update (one affected, with join)', assert => {
 })
 
 test('test update (all affected)', assert => {
-  return Node.objects.update({val: 14}).then(xs => {
+  return Node.objects.update({ val: 14 }).then(xs => {
     assert.deepEqual(xs, 5)
     return db.getConnection()
   }).then(conn => {
@@ -251,7 +251,7 @@ test('test update (all affected)', assert => {
 
 test('test filter with delete', assert => {
   return Node.objects
-    .filter({id: 1000})
+    .filter({ id: 1000 })
     .delete()
     .then(xs => {
       assert.deepEqual(xs, 0)
@@ -267,7 +267,7 @@ test('test filter with delete', assert => {
 
 test('test delete', assert => {
   return Node.objects
-    .delete({id: 1})
+    .delete({ id: 1 })
     .then(xs => {
       assert.deepEqual(xs, 1)
       return db.getConnection()
@@ -283,7 +283,7 @@ test('test delete', assert => {
 
 test('test delete with or', assert => {
   return Node.objects
-    .delete([{id: 1}, {id: 2}])
+    .delete([{ id: 1 }, { id: 2 }])
     .then(xs => {
       assert.deepEqual(xs, 2)
       return db.getConnection()
@@ -324,7 +324,7 @@ test('test simple select', assert => {
       val: -100
     })
   }).then(() => {
-    return Ref.objects.filter({'node.name:startsWith': 'jake'}).then(xs => {
+    return Ref.objects.filter({ 'node.name:startsWith': 'jake' }).then(xs => {
       assert.equal(xs.length, 1)
       assert.equal(xs[0].node.name, 'jake busey')
       assert.equal(xs[0].val, 300)
@@ -333,7 +333,7 @@ test('test simple select', assert => {
 })
 
 test('test select with or (with only one condition)', assert => {
-  return Node.objects.filter([{id: 1}]).then(xs => {
+  return Node.objects.filter([{ id: 1 }]).then(xs => {
     assert.deepEqual(xs, [{
       id: 1,
       name: 'HELLO',
@@ -343,7 +343,7 @@ test('test select with or (with only one condition)', assert => {
 })
 
 test('test values select', assert => {
-  return Ref.objects.filter({'node.name:endsWith': 'busey'}).values('node_id').then(xs => {
+  return Ref.objects.filter({ 'node.name:endsWith': 'busey' }).values('node_id').then(xs => {
     assert.deepEqual(xs, [{
       node_id: 2
     }])
@@ -352,9 +352,9 @@ test('test values select', assert => {
 })
 
 test('test deep values select', assert => {
-  return Ref.objects.filter({'node.name:endsWith': 'busey'}).values(['node.name', 'node_id']).then(xs => {
+  return Ref.objects.filter({ 'node.name:endsWith': 'busey' }).values(['node.name', 'node_id']).then(xs => {
     assert.deepEqual(xs, [{
-      node: {name: 'Gary busey'},
+      node: { name: 'Gary busey' },
       node_id: 2
     }])
     assert.ok(!(xs[0] instanceof Ref), 'should be plain objects')
@@ -362,7 +362,7 @@ test('test deep values select', assert => {
 })
 
 test('test select with order by joined column', assert => {
-  return Farout.objects.create({ref_id: 1}).then(() => {
+  return Farout.objects.create({ ref_id: 1 }).then(() => {
     return Farout.objects.all().order('ref.node.id')
   }).then(xs => {
     assert.match(xs, [{
@@ -372,8 +372,8 @@ test('test select with order by joined column', assert => {
 })
 
 test('test select with multiple joins', assert => {
-  return Farout.objects.create({ref_id: 1, second_ref_id: 2}).then(() => {
-    return Farout.objects.filter([{'ref.id': 1}, {'second_ref.id': 2}])
+  return Farout.objects.create({ ref_id: 1, second_ref_id: 2 }).then(() => {
+    return Farout.objects.filter([{ 'ref.id': 1 }, { 'second_ref.id': 2 }])
   }).then(xs => {
     assert.match(xs, [{
       ref_id: 1,
@@ -399,7 +399,7 @@ test('test streaming select', assert => {
     receiver.on('error', reject)
     receiver.on('finish', resolve)
 
-    Node.objects.filter({id: 1}).pipe(receiver)
+    Node.objects.filter({ id: 1 }).pipe(receiver)
   })
 })
 
@@ -415,14 +415,14 @@ test('test onQuery fires', assert => {
 
   return Promise.all([
     eventFired,
-    Node.objects.filter({id: 1}).then(xs => {
-      assert.match(xs[0], {id: 1, name: 'HELLO', val: 3})
+    Node.objects.filter({ id: 1 }).then(xs => {
+      assert.match(xs[0], { id: 1, name: 'HELLO', val: 3 })
     })
   ])
 })
 
 test('test distinct', assert => {
-  return Ref.objects.filter({val: 0}).distinct('val').then(xs => {
+  return Ref.objects.filter({ val: 0 }).distinct('val').then(xs => {
     assert.deepEqual(xs, [{
       node: null,
       id: 2,
@@ -433,7 +433,7 @@ test('test distinct', assert => {
 })
 
 test('test distinct with default column', assert => {
-  return Ref.objects.filter({val: 0}).distinct().then(xs => {
+  return Ref.objects.filter({ val: 0 }).distinct().then(xs => {
     assert.deepEqual(xs, [{
       node: null,
       id: 2,
@@ -488,7 +488,7 @@ test('test slice with no end', assert => {
 
 test('test notIn with query as param', assert => {
   return Ref.objects.filter({
-    'node_id:notIn': Node.objects.filter({'id:gt': 1}).valuesList('id')
+    'node_id:notIn': Node.objects.filter({ 'id:gt': 1 }).valuesList('id')
   }).then(xs => {
     assert.deepEqual(xs, [{
       id: 1,
@@ -501,12 +501,15 @@ test('test notIn with query as param', assert => {
 
 test('test gt with query as param (should throw validation error)', assert => {
   return Ref.objects.filter({
-    'node_id:gt': Node.objects.filter({id: 1}).valuesList('id')
+    'node_id:gt': Node.objects.filter({ id: 1 }).valuesList('id')
   }).then(() => {
     assert.fail('should not reach here')
   }).catch(err => {
     assert.equals(err.name, 'ValidationError')
-    assert.equals(err.message, 'child "node_id:gt" fails because ["node_id:gt" must be a number, "node_id:gt" must be a number of milliseconds or valid date string]')
+    assert.equals(err.message, `Failed to validate:
+ - should be number
+ - should be string
+ - should match exactly one schema in oneOf`)
   })
 })
 
@@ -535,42 +538,42 @@ test('test in with query containing no filter as param', assert => {
 
 test('test "in query" optimization', assert => {
   return Ref.objects.filter({
-    'node_id:in': Node.objects.filter({name: 'gary busey'}).valuesList('id')
+    'node_id:in': Node.objects.filter({ name: 'gary busey' }).valuesList('id')
   }).sql.then(sql => {
-    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT "refs"."id" AS "refs.id", "refs"."node_id" AS "refs.node_id", "refs"."val" AS "refs.val" FROM "refs" "refs"  WHERE "refs"."node_id" IN (SELECT "nodes"."id" AS "nodes.id" FROM "nodes" "nodes"  WHERE "nodes"."name" = $1)`)
+    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), 'SELECT "refs"."id" AS "refs.id", "refs"."node_id" AS "refs.node_id", "refs"."val" AS "refs.val" FROM "refs" "refs"  WHERE "refs"."node_id" IN (SELECT "nodes"."id" AS "nodes.id" FROM "nodes" "nodes"  WHERE "nodes"."name" = $1)')
   })
 })
 
 test('test "in query" optimization w/prepended value', assert => {
   return Ref.objects.filter({
     'node.name': 'squidward',
-    'node_id:in': Node.objects.filter({name: 'gary busey'}).valuesList('id')
+    'node_id:in': Node.objects.filter({ name: 'gary busey' }).valuesList('id')
   }).sql.then(sql => {
-    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), `SELECT "refs"."id" AS "refs.id", "refs"."node_id" AS "refs.node_id", "refs"."val" AS "refs.val", "nodes"."id" AS "refs.node.id", "nodes"."name" AS "refs.node.name", "nodes"."val" AS "refs.node.val" FROM "refs" "refs" LEFT  JOIN "nodes" "nodes" ON ( "refs"."node_id" = "nodes"."id" ) WHERE ("nodes"."name" = $1 AND "refs"."node_id" IN (SELECT "nodes"."id" AS "nodes.id" FROM "nodes" "nodes"  WHERE "nodes"."name" = $2))`)
+    assert.equal(sql.replace(/\n\s+/gm, ' ').trim(), 'SELECT "refs"."id" AS "refs.id", "refs"."node_id" AS "refs.node_id", "refs"."val" AS "refs.val", "nodes"."id" AS "refs.node.id", "nodes"."name" AS "refs.node.name", "nodes"."val" AS "refs.node.val" FROM "refs" "refs" LEFT  JOIN "nodes" "nodes" ON ( "refs"."node_id" = "nodes"."id" ) WHERE ("nodes"."name" = $1 AND "refs"."node_id" IN (SELECT "nodes"."id" AS "nodes.id" FROM "nodes" "nodes"  WHERE "nodes"."name" = $2))')
   })
 })
 
 test('test values list', assert => {
-  return Ref.objects.filter({'node.name:endsWith': 'busey'}).valuesList(['node_id', 'node.val']).then(xs => {
+  return Ref.objects.filter({ 'node.name:endsWith': 'busey' }).valuesList(['node_id', 'node.val']).then(xs => {
     assert.deepEqual(xs, [2, -10])
   })
 })
 
 test('test count', assert => {
-  return Node.objects.filter({'val:gt': 10}).count().then(function (xs) {
+  return Node.objects.filter({ 'val:gt': 10 }).count().then(function (xs) {
     assert.equal(xs, '2')
   })
 })
 
 test('test getOrCreate already exists', assert => {
-  return Node.objects.getOrCreate({name: 'Gary busey', val: -10}).then(([created, xs]) => {
+  return Node.objects.getOrCreate({ name: 'Gary busey', val: -10 }).then(([created, xs]) => {
     assert.equal(created, false)
     assert.equal(xs.name, 'Gary busey')
   })
 })
 
 test('test getOrCreate does not exist', assert => {
-  return Node.objects.getOrCreate({name: 'johnny five', val: 100}).then(([created, xs]) => {
+  return Node.objects.getOrCreate({ name: 'johnny five', val: 100 }).then(([created, xs]) => {
     assert.equal(created, true)
     assert.equal(xs.name, 'johnny five')
   })
@@ -582,7 +585,7 @@ test('test getOrCreate multiple objects returned', assert => {
     val: 0xdeadbeef
   })
 
-  return Node.objects.getOrCreate({name: cloneBusey.then(xs => xs.name)}).then(() => {
+  return Node.objects.getOrCreate({ name: cloneBusey.then(xs => xs.name) }).then(() => {
     throw new Error('should throw exception')
   }, err => {
     assert.equal(err.constructor, Node.objects.MultipleObjectsReturned)
@@ -590,7 +593,7 @@ test('test getOrCreate multiple objects returned', assert => {
 })
 
 test('test get fails on multiple objects returned', assert => {
-  return Node.objects.get({'name:contains': 'busey'}).catch(err => {
+  return Node.objects.get({ 'name:contains': 'busey' }).catch(err => {
     assert.equal(err.constructor, Node.objects.MultipleObjectsReturned)
     assert.equal(err.message, 'Multiple Node objects returned')
     assert.ok(err instanceof ormnomnom.MultipleObjectsReturned)
@@ -598,20 +601,20 @@ test('test get fails on multiple objects returned', assert => {
 })
 
 test('test get fails on zero objects returned', assert => {
-  return Node.objects.get({'name': 'ford prefect'})
-  .catch(err => {
-    if (err instanceof Node.objects.NotFound) {
-      assert.equal(err.message, 'Node not found')
-      assert.ok(err instanceof ormnomnom.NotFound)
-    } else {
-      throw err
-    }
-  })
+  return Node.objects.get({ name: 'ford prefect' })
+    .catch(err => {
+      if (err instanceof Node.objects.NotFound) {
+        assert.equal(err.message, 'Node not found')
+        assert.ok(err instanceof ormnomnom.NotFound)
+      } else {
+        throw err
+      }
+    })
 })
 
 test('test reverse relation', assert => {
   return Node.objects.refsSetFor(
-    Node.objects.get({name: 'Gary busey'})
+    Node.objects.get({ name: 'Gary busey' })
   ).then(xs => {
     assert.equal(xs.length, 1)
     assert.equal(xs[0].val, 0)
@@ -620,7 +623,7 @@ test('test reverse relation', assert => {
 })
 
 test('test reverse query', assert => {
-  return Node.objects.filter({'refs.val:gt': 0}).then(xs => {
+  return Node.objects.filter({ 'refs.val:gt': 0 }).then(xs => {
     assert.equal(xs.length, 1)
   })
 })
@@ -656,15 +659,15 @@ test('test group', assert => {
   }).then(xs => {
     assert.equals(xs.length, 3)
     assert.match(xs, [
-      [{node_id: 3}, {highest: 0}],
-      [{node_id: 2}, {highest: 5}],
-      [{node_id: 1}, {highest: 10}]
+      [{ node_id: 3 }, { highest: 0 }],
+      [{ node_id: 2 }, { highest: 5 }],
+      [{ node_id: 1 }, { highest: 10 }]
     ])
   })
 })
 
 test('test group (no annotations)', assert => {
-  return Ref.objects.create({node_id: 3, val: 5}).then(() => {
+  return Ref.objects.create({ node_id: 3, val: 5 }).then(() => {
     return Ref.objects.all().group('node_id').order('-node_id')
   }).then(xs => {
     assert.match(xs, [{
@@ -684,9 +687,9 @@ test('test group (annotation using push)', assert => {
     }
   }).order('node_id').then(xs => {
     assert.match(xs, [
-      [{node_id: 1}, {matches: true}],
-      [{node_id: 2}, {matches: false}],
-      [{node_id: 3}, {matches: false}]
+      [{ node_id: 1 }, { matches: true }],
+      [{ node_id: 2 }, { matches: false }],
+      [{ node_id: 3 }, { matches: false }]
     ])
   })
 })
@@ -706,7 +709,7 @@ test('test group (no column specified)', assert => {
 
   return getRefs.then(refs => {
     return Node.objects.filter({
-      id: getNode.then(({id}) => id),
+      id: getNode.then(({ id }) => id),
       'refs.id:isNull': false
     }).group().annotate({
       nerds (ref) {
@@ -751,8 +754,8 @@ test('test group (no column specified, nonvalues)', assert => {
     }).order('-howMuch')
   }).then(results => {
     assert.match(results, [
-      [{name: 'floof', val: 66044}, {nerds: [1, 3, 5, 7, 9], howMuch: 25}],
-      [{name: 'cat', val: 10}, {nerds: [0, 2, 4, 6, 8], howMuch: 20}]
+      [{ name: 'floof', val: 66044 }, { nerds: [1, 3, 5, 7, 9], howMuch: 25 }],
+      [{ name: 'cat', val: 10 }, { nerds: [0, 2, 4, 6, 8], howMuch: 20 }]
     ])
   })
 })
@@ -770,14 +773,14 @@ test('join delete', assert => {
     }
   })).then(results => {
     return Promise.all(results.map(xs => {
-      return Farout.objects.create({ref: xs})
+      return Farout.objects.create({ ref: xs })
     }))
   })
 
   return getRefs.then(() => {
-    return Farout.objects.delete({'ref.node.name': 'troop'})
+    return Farout.objects.delete({ 'ref.node.name': 'troop' })
   }).then(() => {
-    return Farout.objects.filter({'ref.node.name': 'troop'}).count()
+    return Farout.objects.filter({ 'ref.node.name': 'troop' }).count()
   }).then(result => {
     assert.equal(Number(result), 0)
   })
@@ -808,13 +811,13 @@ test('empty bulk INSERT', assert => {
 })
 
 test('create null fk', assert => {
-  return Farout.objects.create({ref: null}).then(result => {
+  return Farout.objects.create({ ref: null }).then(result => {
     assert.equal(result.ref_id, null)
   })
 })
 
 test('join over non-fk', assert => {
-  return Node.objects.filter({'val.foo': 3}).then(() => {
+  return Node.objects.filter({ 'val.foo': 3 }).then(() => {
     throw new Error('unexpected')
   }, err => {
     assert.ok(/val/.test(err.message))
@@ -822,7 +825,7 @@ test('join over non-fk', assert => {
 })
 
 test('filter bad column', assert => {
-  return Node.objects.filter({'dne': 3}).then(() => {
+  return Node.objects.filter({ dne: 3 }).then(() => {
     throw new Error('unexpected')
   }, err => {
     assert.ok(/"dne"/.test(err.message))
@@ -830,15 +833,15 @@ test('filter bad column', assert => {
 })
 
 test('filter does not satisfy validator', assert => {
-  return Node.objects.filter({'val': 'banana'}).then(() => {
+  return Node.objects.filter({ val: 'banana' }).then(() => {
     throw new Error('did not expect to make it this far')
   }, err => {
-    assert.ok(/"val"/.test(err.message))
+    assert.ok(/should be number/.test(err.message))
   })
 })
 
 test('exclude or', assert => {
-  return Node.objects.exclude([{val: 10}, {val: 0}]).order('name').then(results => {
+  return Node.objects.exclude([{ val: 10 }, { val: 0 }]).order('name').then(results => {
     assert.deepEqual(results.map(xs => xs.name), [
       'Gary busey',
       'HELLO',
@@ -854,7 +857,7 @@ test('error from postgres in row count', assert => {
     'val:raw' () {
       return 'not valid sql'
     }
-  }).update({val: 1}).then(() => {
+  }).update({ val: 1 }).then(() => {
     throw new Error('did not expect to make it this far')
   }, err => {
     assert.ok(/at or near/.test(err))
@@ -863,34 +866,34 @@ test('error from postgres in row count', assert => {
 
 test('update ignores non-forward relations, non-ddl items', assert => {
   // just shouldn't explode!
-  return Node.objects.filter({val: -1}).update({val: 1, refs: 'goof', newman: 'jerry'})
+  return Node.objects.filter({ val: -1 }).update({ val: 1, refs: 'goof', newman: 'jerry' })
 })
 
 test('update throws on bad data validation', assert => {
   // just shouldn't explode!
-  return Node.objects.filter([{val: -1}, {val: 100000}]).update({val: 'goof'}).then(() => {
+  return Node.objects.filter([{ val: -1 }, { val: 100000 }]).update({ val: 'goof' }).then(() => {
     throw new Error('did not expect to make it this far')
   }, err => {
-    assert.ok(/"val".*must be a number/.test(err.message))
+    assert.ok(/should be number/.test(err.message))
   })
 })
 
 test('update allows OR', assert => {
-  return Node.objects.filter([{val: 10}, {val: 100}]).update({val: 0}).then(results => {
+  return Node.objects.filter([{ val: 10 }, { val: 100 }]).update({ val: 0 }).then(results => {
     assert.equal(Number(results), 2)
   })
 })
 
 test('count() on annotated query', assert => {
-  const root = Node.objects.create({name: 'count-annotation', val: 0})
-  const root2 = Node.objects.create({name: 'count-annotation', val: 0})
-  const root3 = Node.objects.create({name: 'count-annotation', val: 0})
+  const root = Node.objects.create({ name: 'count-annotation', val: 0 })
+  const root2 = Node.objects.create({ name: 'count-annotation', val: 0 })
+  const root3 = Node.objects.create({ name: 'count-annotation', val: 0 })
   const refs = Array.from(Array(20)).map((_, idx) => {
-    return Ref.objects.create({node: root, val: idx})
+    return Ref.objects.create({ node: root, val: idx })
   })
 
   return Promise.all(refs.concat([root2]).concat([root3])).then(() => {
-    const qs = Node.objects.filter({name: 'count-annotation'}).annotate({
+    const qs = Node.objects.filter({ name: 'count-annotation' }).annotate({
       total (ref) {
         return `sum(${ref('refs.val')})`
       }

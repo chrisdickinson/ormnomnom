@@ -11,9 +11,9 @@ class Invoice {
 }
 
 Invoice.objects = orm(Invoice, {
-  id: orm.joi.number().required(),
-  name: orm.joi.string(),
-  date: orm.joi.date()
+  id: { type: 'integer' },
+  name: { type: 'string' },
+  date: { format: 'date-time' }
 })
 
 class LineItem {
@@ -27,10 +27,10 @@ class LineItem {
 }
 
 LineItem.objects = orm(LineItem, {
-  id: orm.joi.number().required(),
+  id: { type: 'integer' },
   invoice: orm.fk(Invoice),
-  subtotal: orm.joi.number(),
-  discount: orm.joi.number()
+  subtotal: { type: 'number' },
+  discount: { type: 'number' }
 })
 
 class Node {
@@ -42,9 +42,9 @@ class Node {
 }
 
 Node.objects = orm(Node, {
-  id: orm.joi.number(),
-  name: orm.joi.string(),
-  val: orm.joi.number().required()
+  id: { type: 'integer' },
+  name: { anyOf: [{ type: 'null' }, { type: 'string' }], default: null },
+  val: { type: 'number' }
 })
 
 class Ref {
@@ -57,9 +57,9 @@ class Ref {
 }
 
 Ref.objects = orm(Ref, {
-  id: orm.joi.number().required(),
+  id: { type: 'integer' },
   node: orm.fk(Node),
-  val: orm.joi.number().required()
+  val: { type: 'number' }
 })
 
 class Farout {
@@ -73,9 +73,9 @@ class Farout {
 }
 
 Farout.objects = orm(Farout, {
-  id: orm.joi.number(),
-  ref: orm.fk(Ref, {nullable: true}),
-  second_ref: orm.fk(Ref, {nullable: true})
+  id: { type: 'integer' },
+  ref: orm.fk(Ref, { nullable: true }),
+  second_ref: orm.fk(Ref, { nullable: true })
 })
 
 class Item {
@@ -89,11 +89,11 @@ class Item {
 }
 
 Item.objects = orm(Item, {
-  id: orm.joi.number(),
-  name: orm.joi.string(),
-  created: orm.joi.date(),
-  updated: orm.joi.date(),
-  deleted: orm.joi.date()
+  id: { type: 'integer' },
+  name: { anyOf: [{}, { type: 'string' }], default: null },
+  created: { anyOf: [{}, { type: 'string', format: 'date-time' }], default: null },
+  updated: { anyOf: [{}, { type: 'string', format: 'date-time' }], default: null },
+  deleted: { anyOf: [{}, { type: 'string', format: 'date-time' }], default: null }
 })
 
 class ItemDetail {
@@ -107,10 +107,10 @@ class ItemDetail {
 }
 
 ItemDetail.objects = orm(ItemDetail, {
-  id: orm.joi.number(),
-  comment: orm.joi.string(),
-  item: orm.fk(Item, {nullable: true}),
-  deleted_at: orm.joi.date()
+  id: { type: 'integer' },
+  comment: { type: 'string' },
+  item: orm.fk(Item, { nullable: true }),
+  deleted_at: { anyOf: [{}, { type: 'string', format: 'date-time' }], default: null }
 })
 
 class ItemPrice {
@@ -123,9 +123,9 @@ class ItemPrice {
 }
 
 ItemPrice.objects = orm(ItemPrice, {
-  id: orm.joi.number(),
-  price: orm.joi.number(),
-  item_detail: orm.fk(ItemDetail, {nullable: true})
+  id: { type: 'integer' },
+  price: { type: 'number' },
+  item_detail: orm.fk(ItemDetail, { nullable: true })
 })
 
 module.exports = {

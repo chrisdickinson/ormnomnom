@@ -29,7 +29,7 @@ function createdb () {
     return pgtools.createdb({}, TEST_DB_NAME)
   }).then(() => {
     return getConnection().then(client => {
-      return client.query(fs.readFileSync(path.join(__dirname, 'fixture.sql'), {encoding: 'utf8'})).then(() => client.end())
+      return client.query(fs.readFileSync(path.join(__dirname, 'fixture.sql'), { encoding: 'utf8' })).then(() => client.end())
     })
   })
 }

@@ -243,9 +243,9 @@ class Invoice {
 }
 
 Invoice.objects = orm(Invoice, {
-  id: orm.joi.number().required(),
-  name: orm.joi.string(),
-  date: orm.joi.date()
+  id: { type: 'number' },
+  name: { type: 'string' },
+  date: { type: 'string', format: 'date-time' }
 })
 
 class LineItem {
@@ -259,10 +259,10 @@ class LineItem {
 }
 
 LineItem.objects = orm(LineItem, {
-  id: orm.joi.number().required(),
+  id: { type: 'number' },
   invoice: orm.fk(Invoice),
-  subtotal: orm.joi.number(),
-  discount: orm.joi.number()
+  subtotal: { anyOf: [{type: 'null'}, {type: 'number}], default: null },
+  discount: { anyOf: [{type: 'null'}, {type: 'number}], default: null }
 })
 ```
 

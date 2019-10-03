@@ -1,6 +1,6 @@
 # Prerequisites
 
-To use ORMnomnom you'll need Node v4 or greater and a database. Currently
+To use ORMnomnom you'll need Node 12 or greater and a database. Currently
 ORMnomnom is only tested with Postgres, so we recommend you use that!
 
 This doc will help you with:
@@ -15,10 +15,10 @@ following in a shell:
 
 ```bash
 $ node -v
-v4.2.1
+v12.2.0
 ```
 
-If the first two characters (`v4`, above) are `4` or greater, congratulations!
+If the first three characters (`v12`, above) are `12` or greater, congratulations!
 Otherwise, you will have to [upgrade Node](https://nodejs.org/).
 
 Once you have a working Node, make sure you have a working Postgres installation.

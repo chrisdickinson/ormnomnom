@@ -74,11 +74,6 @@ If you wish to override the foreign column name (from the default `${schemaKey}_
 orm.fk(Model, {column: 'model_uuid'})
 ```
 
-##### `orm.joi`
-
-The [joi][def-joi] version used by this installation of ORMnomnom. For use
-when defining the [model schema][def-model-schema].
-
 ##### `orm.onQuery(Function) → orm`
 
 Attach a listener for query events. Query event listeners will be
@@ -157,7 +152,6 @@ rows were found.
 ##### `orm.Conflict`
 ##### `DAO<Model>.Conflict`
 
-[def-joi]: https://www.npmjs.org/package/joi
 [def-clause]: ./queryset.md#clauses
 [ref-queryset]: ./queryset.md
 [def-pg]: https://www.npmjs.org/package/pg
