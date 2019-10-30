@@ -36,7 +36,7 @@
     "@iterables/zip": "^1.0.2",
     "ajv": "^6.10.2",
     "lodash.clonedeep": "^4.5.0",
-    "pg-query-stream": "^1.0.0",
+    "pg-query-stream": "^2.0.0",
     "quotemeta": "0.0.0"
   },
   "devDependencies": {
