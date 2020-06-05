@@ -9,7 +9,11 @@ jobs:
         image: postgres:11
         ports: ['5432:5432']
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
- 
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: onn_test
+
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-node@v1
@@ -22,3 +26,4 @@ jobs:
       env:
         PGHOST: 127.0.0.1
         PGUSER: postgres
+        PGPASSWORD: postgres
