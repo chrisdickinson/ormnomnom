@@ -128,6 +128,49 @@ ItemPrice.objects = orm(ItemPrice, {
   item_detail: orm.fk(ItemDetail, { nullable: true })
 })
 
+class ColumnTest {
+  constructor (obj) {
+    this.id = obj.id
+    this.b64_json_column = obj.b64_json_column
+  }
+}
+
+ColumnTest.objects = orm(ColumnTest, {
+  id: { type: 'integer' },
+  b64_json_column: orm.col({
+    type: 'object',
+    required: ['foo'],
+    properties: {
+      foo: {
+        type: 'integer'
+      }
+    }
+  }, {
+    encode (appData) {
+      return Buffer.from(JSON.stringify(appData)).toString('base64').replace(/=+$/, '')
+    },
+    decode (dbData) {
+      return JSON.parse(String(Buffer.from(dbData, 'base64')))
+    },
+    encodeQuery (appData) {
+      return Buffer.from(JSON.stringify(appData)).toString('base64').replace(/=+$/, '')
+    }
+  })
+})
+
+class RefColumnTest {
+  constructor (obj) {
+    this.id = obj.id
+    this.column_id = obj.column_id
+    this.column = obj.column
+  }
+}
+
+RefColumnTest.objects = orm(RefColumnTest, {
+  id: { type: 'integer' },
+  column: orm.fk(ColumnTest)
+})
+
 module.exports = {
   Invoice,
   LineItem,
@@ -136,5 +179,7 @@ module.exports = {
   Farout,
   Item,
   ItemDetail,
-  ItemPrice
+  ItemPrice,
+  ColumnTest,
+  RefColumnTest
 }

@@ -111,3 +111,13 @@ CREATE TABLE item_prices (
   price integer,
   item_detail_id integer default null references "item_details" ("id") on delete cascade
 );
+
+CREATE TABLE column_tests (
+  id serial primary key,
+  b64_json_column text
+);
+
+CREATE TABLE ref_column_tests (
+  id serial primary key,
+  column_id integer default null references "column_tests" ("id") on delete cascade
+);
