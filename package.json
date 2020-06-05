@@ -40,7 +40,7 @@
     "quotemeta": "0.0.0"
   },
   "devDependencies": {
-    "pg": "^7.4.1",
+    "pg": "^8.2.1",
     "pgtools": "^0.3.0",
     "standard": "^14.3.1",
     "tap": "^14.6.9",
