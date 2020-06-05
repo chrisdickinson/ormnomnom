@@ -3,8 +3,8 @@
 const { beforeEach, afterEach, teardown, test } = require('tap')
 const { Writable } = require('stream')
 
+const { Node, Ref, Farout, ColumnTest, RefColumnTest } = require('./models')
 const ormnomnom = require('..')
-const { Node, Ref, Farout } = require('./models')
 const db = require('./db')
 
 db.setup(beforeEach, afterEach, teardown)
@@ -359,6 +359,15 @@ test('test deep values select', assert => {
     }])
     assert.ok(!(xs[0] instanceof Ref), 'should be plain objects')
   })
+})
+
+test('test values fails on unknown join', async assert => {
+  try {
+    await Ref.objects.filter({ 'node.name:endsWith': 'busey' }).values(['bananas.name', 'node_id'])
+    assert.fail('expected an exception')
+  } catch (err) {
+    assert.matches(err.message, /Cannot join across.*bananas/)
+  }
 })
 
 test('test select with order by joined column', assert => {
@@ -921,4 +930,180 @@ test('connection() uses the provided conn', async assert => {
 
   const items = await Node.objects.connection(conn).slice(0, 10)
   assert.equal(items.length, 5)
+})
+
+test('Updating FKs using full objects works as expected', async assert => {
+  const first = await Node.objects.create({ name: 'first-target', val: 0 })
+  const second = await Node.objects.create({ name: 'second-target', val: 0 })
+  const referrer = await Ref.objects.create({ node: first, val: 10 })
+
+  await Ref.objects.filter({ id: referrer.id }).update({ node: second })
+
+  const result = await Ref.objects.get({ id: referrer.id })
+
+  assert.equal(result.node_id, second.id)
+})
+
+test('Updating FKs using concrete column + id works as expected', async assert => {
+  const first = await Node.objects.create({ name: 'first-target', val: 0 })
+  const second = await Node.objects.create({ name: 'second-target', val: 0 })
+  const referrer = await Ref.objects.create({ node: first, val: 10 })
+
+  await Ref.objects.filter({ id: referrer.id }).update({ node_id: second.id })
+
+  const result = await Ref.objects.get({ id: referrer.id })
+
+  assert.equal(result.node_id, second.id)
+})
+
+test('Custom column codec encodes data at rest', async assert => {
+  const result = await ColumnTest.objects.create({
+    b64_json_column: {
+      foo: 13
+    }
+  })
+
+  assert.same(result.b64_json_column, { foo: 13 })
+
+  const { db } = await ColumnTest.objects.getQuerySet().raw()
+  const { rows } = await db.query('SELECT * FROM column_tests WHERE id = $1', [result.id])
+
+  assert.equal(
+    Buffer.from(JSON.stringify({ foo: 13 })).toString('base64').replace(/=+$/, ''),
+    rows[0].b64_json_column
+  )
+})
+
+test('Custom column applies validation ahead of encoding', async assert => {
+  const [err, result] = await ColumnTest.objects.create({
+    b64_json_column: {
+      foo: 'wow not ok'
+    }
+  }).then(
+    xs => [null, xs],
+    xs => [xs, null]
+  )
+
+  assert.equal(result, null)
+  assert.isa(err, ormnomnom.ValidationError)
+})
+
+test('Custom column applies to where clauses', async assert => {
+  const result = await ColumnTest.objects.create({
+    b64_json_column: {
+      foo: 3000
+    }
+  })
+
+  const found = await ColumnTest.objects.filter({
+    b64_json_column: { foo: 3000 }
+  })
+
+  assert.equal(found.length, 1)
+  assert.equal(found[0].id, result.id)
+  assert.same(found[0].b64_json_column, result.b64_json_column)
+})
+
+test('Custom column is appropriately decoded in values queries', async assert => {
+  const result = await ColumnTest.objects.create({
+    b64_json_column: {
+      foo: 3000
+    }
+  })
+
+  const found = await ColumnTest.objects.all().values(['id', 'b64_json_column'])
+
+  assert.equal(found.length, 1)
+  assert.equal(found[0].id, result.id)
+  assert.same(found[0].b64_json_column, result.b64_json_column)
+})
+
+test('Custom column is appropriately decoded in valuesList queries', async assert => {
+  const result = await ColumnTest.objects.create({
+    b64_json_column: {
+      foo: 3000
+    }
+  })
+
+  const found = await ColumnTest.objects.all().valuesList(['b64_json_column'])
+
+  assert.equal(found.length, 1)
+  assert.same(found[0], result.b64_json_column)
+})
+
+test('Custom column codec works as a reference', async assert => {
+  await RefColumnTest.objects.create({
+    column: ColumnTest.objects.create({
+      b64_json_column: {
+        foo: 13
+      }
+    })
+  })
+
+  const results = await RefColumnTest.objects.filter({
+    'column.b64_json_column': {
+      foo: 13
+    }
+  })
+
+  assert.equal(results.length, 1)
+  assert.same(results[0].column.b64_json_column, { foo: 13 })
+})
+
+test('Custom column codec works in a reverse relation', async assert => {
+  const target = await RefColumnTest.objects.create({
+    column: ColumnTest.objects.create({
+      b64_json_column: {
+        foo: 13
+      }
+    })
+  })
+
+  const results = await ColumnTest.objects.filter({
+    'ref_column_tests.id:isNull': false
+  }).values(['ref_column_tests.id', 'b64_json_column'])
+
+  assert.equal(results.length, 1)
+  assert.same(results[0], {
+    ref_column_tests: { id: target.id },
+    b64_json_column: { foo: 13 }
+  })
+})
+
+test('Custom column codec works in a values() query as a fk', async assert => {
+  await RefColumnTest.objects.create({
+    column: ColumnTest.objects.create({
+      b64_json_column: {
+        foo: 13
+      }
+    })
+  })
+
+  const results = await RefColumnTest.objects.filter({
+    'column.b64_json_column': {
+      foo: 13
+    }
+  }).values(['column.b64_json_column'])
+
+  assert.same(results[0], {
+    column: { b64_json_column: { foo: 13 } }
+  })
+})
+
+test('Custom column codec works in a valuesList() query as a fk', async assert => {
+  await RefColumnTest.objects.create({
+    column: ColumnTest.objects.create({
+      b64_json_column: {
+        foo: 13
+      }
+    })
+  })
+
+  const results = await RefColumnTest.objects.filter({
+    'column.b64_json_column': {
+      foo: 13
+    }
+  }).valuesList(['column.b64_json_column'])
+
+  assert.same(results[0], { foo: 13 })
 })
