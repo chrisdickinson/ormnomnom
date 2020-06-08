@@ -7,7 +7,7 @@ const clsToDAOSym = symbols.clsToDAO
 const privateAPISym = symbols.privateAPI
 const DAO = require('..')
 
-const softDeleteSym = Symbol('soft_delete')
+const softDeleteSym = Symbol('soft_delete_decorator')
 
 module.exports = function (dao, opts = {}) {
   if (!(dao instanceof DAO.DAO)) {
