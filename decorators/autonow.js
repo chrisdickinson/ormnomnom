@@ -7,7 +7,7 @@ const privateAPISym = symbols.privateAPI
 const DAO = require('..')
 const { props } = require('../lib/promises')
 
-const autoNowSym = Symbol('auto_now')
+const autoNowSym = Symbol('auto_now_decorator')
 
 module.exports = function (dao, opts = {}) {
   if (!(dao instanceof DAO.DAO)) {
