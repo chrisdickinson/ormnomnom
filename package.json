@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/chrisdickinson/ormnomnom#readme",
   "dependencies": {
+    "@hapi/iron": "^6.0.0",
     "@iterables/chain": "^1.0.1",
     "@iterables/map": "^1.0.1",
     "@iterables/reduce": "^1.0.1",
