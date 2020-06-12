@@ -1,5 +1,6 @@
 'use strict';
 
+const orm = require('..')
 const Iron = require('@hapi/iron');
 
 

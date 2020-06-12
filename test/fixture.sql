@@ -121,3 +121,8 @@ CREATE TABLE ref_column_tests (
   id serial primary key,
   column_id integer default null references "column_tests" ("id") on delete cascade
 );
+
+CREATE TABLE encrypted_column_tests (
+  id serial primary key,
+  secret_data text
+);
