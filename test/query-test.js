@@ -3,7 +3,7 @@
 const { beforeEach, afterEach, teardown, test } = require('tap')
 const { Writable } = require('stream')
 
-const { Node, Ref, Farout, ColumnTest, RefColumnTest } = require('./models')
+const { Node, Ref, Farout, ColumnTest, RefColumnTest, EncryptedColumnTest } = require('./models')
 const ormnomnom = require('..')
 const db = require('./db')
 
@@ -1106,4 +1106,19 @@ test('Custom column codec works in a valuesList() query as a fk', async assert =
   }).valuesList(['column.b64_json_column'])
 
   assert.same(results[0], { foo: 13 })
+})
+
+test('Encrypted columns encode and decode correctly', async assert => {
+  const result = await EncryptedColumnTest.objects.create({
+    secret_data: {
+      foo: 666
+    }
+  })
+
+  assert.same(result.secret_data, { foo: 666 })
+
+  const { db } = await ColumnTest.objects.getQuerySet().raw()
+  const { rows } = await db.query('SELECT * FROM encrypted_column_tests WHERE id = $1', [result.id])
+
+  assert.matches(rows[0].secret_data, /^Fe/)
 })

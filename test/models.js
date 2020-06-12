@@ -1,6 +1,7 @@
 'use strict'
 
 const orm = require('..')
+const encryptedCol = require('../columns/encrypted')
 
 class Invoice {
   constructor (obj) {
@@ -171,6 +172,29 @@ RefColumnTest.objects = orm(RefColumnTest, {
   column: orm.fk(ColumnTest)
 })
 
+class EncryptedColumnTest {
+  constructor (obj) {
+    this.id = obj.id
+    this.column_id = obj.column_id
+    this.column = obj.column
+  }
+}
+
+EncryptedColumnTest.objects = orm(EncryptedColumnTest, {
+  id: { type: 'integer' },
+  secret_data: encryptedCol({
+    type: 'object',
+    required: ['foo'],
+    properties: {
+      foo: {
+        type: 'integer'
+      }
+    }
+  }, {
+    password: 'keyboardcat'.repeat(4)
+  })
+})
+
 module.exports = {
   Invoice,
   LineItem,
@@ -181,5 +205,6 @@ module.exports = {
   ItemDetail,
   ItemPrice,
   ColumnTest,
-  RefColumnTest
+  RefColumnTest,
+  EncryptedColumnTest
 }
