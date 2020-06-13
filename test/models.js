@@ -175,8 +175,7 @@ RefColumnTest.objects = orm(RefColumnTest, {
 class EncryptedColumnTest {
   constructor (obj) {
     this.id = obj.id
-    this.column_id = obj.column_id
-    this.column = obj.column
+    this.secret_data = obj.secret_data
   }
 }
 
