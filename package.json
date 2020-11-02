@@ -42,7 +42,7 @@
   "devDependencies": {
     "pg": "^8.2.1",
     "pgtools": "^0.3.0",
-    "standard": "^14.3.1",
+    "standard": "^16.0.1",
     "tap": "^14.6.9",
     "weallbehave": "^1.0.3",
     "weallcontribute": "^1.0.8"
