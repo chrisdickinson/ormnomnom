@@ -2,6 +2,7 @@
 
 const orm = require('..')
 const encryptedCol = require('../columns/encrypted')
+const S = require('fluent-schema')
 
 class Invoice {
   constructor (obj) {
@@ -12,9 +13,9 @@ class Invoice {
 }
 
 Invoice.objects = orm(Invoice, {
-  id: { type: 'integer' },
-  name: { type: 'string' },
-  date: { format: 'date-time' }
+  id: S.integer(),
+  name: S.string(),
+  date: S.string().format(S.FORMATS.DATE_TIME)
 })
 
 class LineItem {
