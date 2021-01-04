@@ -35,7 +35,7 @@
     "@iterables/map": "^1.0.1",
     "@iterables/reduce": "^1.0.1",
     "@iterables/zip": "^1.0.2",
-    "ajv": "^6.10.2",
+    "ajv": "^7.0.3",
     "lodash.clonedeep": "^4.5.0",
     "pg-query-stream": "^4.0.0",
     "quotemeta": "0.0.0"
