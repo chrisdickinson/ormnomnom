@@ -84,6 +84,7 @@ class Item {
   constructor (obj) {
     this.id = obj.id
     this.name = obj.name
+    this.structured_content = obj.structured_content
     this.created = obj.created
     this.updated = obj.updated
     this.deleted = obj.deleted
@@ -93,6 +94,7 @@ class Item {
 Item.objects = orm(Item, {
   id: { type: 'integer' },
   name: { anyOf: [{}, { type: 'string' }], default: null },
+  structured_content: { anyOf: [{ type: 'null' }, { items: { type: 'string' } }], default: null },
   created: { anyOf: [{}, { type: 'string', format: 'date-time' }], default: null },
   updated: { anyOf: [{}, { type: 'string', format: 'date-time' }], default: null },
   deleted: { anyOf: [{}, { type: 'string', format: 'date-time' }], default: null }

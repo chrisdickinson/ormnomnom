@@ -94,6 +94,7 @@ CREATE TABLE farouts (
 CREATE TABLE items (
   id serial primary key,
   name text,
+  structured_content jsonb DEFAULT NULL,
   created timestamp,
   updated timestamp,
   deleted timestamp

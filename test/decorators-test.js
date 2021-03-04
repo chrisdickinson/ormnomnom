@@ -7,6 +7,7 @@ const autoNow = require('../decorators/autonow')
 const softDelete = require('../decorators/softdelete')
 const timestamps = require('../decorators/timestamps')
 const db = require('./db')
+const autoJSON = require('../decorators/autojson')
 
 db.setup(beforeEach, afterEach, teardown)
 
@@ -430,6 +431,154 @@ test('timestamps: can use combined decorator', assert => {
       return Item.wrappedObjects.all()
     }).then(items => {
       assert.equals(items.length, 0, 'should find no items')
+    })
+  })
+})
+
+test('autoJSON: throws when argument is not a dao', assert => {
+  assert.throws(() => {
+    Item.wrappedObjects = autoJSON(Item)
+  }, {
+    message: 'Expected instance of DAO'
+  })
+
+  assert.end()
+})
+
+test('autoJSON: throws when no column is passed', assert => {
+  assert.throws(() => {
+    Item.wrappedObjects = autoJSON(Item.objects)
+  }, {
+    message: 'Must specify column name for automatic json'
+  })
+
+  assert.end()
+})
+
+test('autoJSON: throws when given a column that does not exist', assert => {
+  assert.throws(() => {
+    Item.wrappedObjects = autoJSON(Item.objects, { column: 'not_here' })
+  }, {
+    message: 'Column "not_here" does not exist and cannot be configured for automatic json'
+  })
+
+  assert.end()
+})
+
+test('autoJSON: throws when trying to attach to the same column twice', assert => {
+  Item.wrappedObjects = autoJSON(Item.objects, { column: 'structured_content' })
+
+  assert.throws(() => {
+    Item.doubleWrappedObjects = autoJSON(Item.wrappedObjects, { column: 'structured_content' })
+  }, {
+    message: 'The column "structured_content" is already configured for automatic json'
+  })
+
+  assert.end()
+})
+
+test('autoJSON: original dao is not modified', assert => {
+  Item.wrappedObjects = autoJSON(Item.objects, { column: 'structured_content' })
+
+  return Item.objects.create({ name: 'test' }).then(item => {
+    assert.notOk(item.structured_content, 'created column should not be set')
+  })
+})
+
+test('autoJSON: stringify the column when it has data', assert => {
+  Item.wrappedObjects = autoJSON(Item.objects, { column: 'structured_content' })
+
+  return Item.wrappedObjects.create({ name: 'test', structured_content: ['foo', 'bar'] }).then(item => {
+    assert.ok(item.id, 'id column should be set')
+    assert.equals(item.name, 'test', 'name column should be set')
+    assert.same(item.structured_content, ['foo', 'bar'], 'structured_content column should be set')
+  })
+})
+
+test('autoJSON: does not stringify the column on create when no data is passed', assert => {
+  Item.wrappedObjects = autoJSON(Item.objects, { column: 'structured_content' })
+
+  return Item.wrappedObjects.create().then(item => {
+    assert.ok(item.id, 'id column should be set')
+    assert.equals(item.name, null, 'name column should be null')
+    assert.equals(item.structured_content, null, 'structured_content column should not be set')
+  })
+})
+
+test('autoJSON: does not stringify the column on create if a string value is already passed', assert => {
+  Item.wrappedObjects = autoJSON(Item.objects, { column: 'structured_content' })
+
+  return Item.wrappedObjects.create({ structured_content: JSON.stringify(['foo', 'bar']) }).then(item => {
+    assert.ok(item.id, 'id column should be set')
+    assert.equals(item.name, null, 'name column should be null')
+    assert.same(item.structured_content, ['foo', 'bar'], 'structured_content column should match the given value')
+  })
+})
+
+test('autoJSON: stringifies the column on create for bulk inserts', assert => {
+  Item.wrappedObjects = autoJSON(Item.objects, { column: 'structured_content' })
+
+  return Item.wrappedObjects.create([{ name: 'one', structured_content: ['foo'] }, { name: 'two', structured_content: ['bar'] }]).then(items => {
+    assert.equals(items.length, 2, 'should have created two items')
+    assert.ok(items[0].id, 'id column should be set')
+    assert.equals(items[0].name, 'one', 'name column should be set')
+    assert.equals(typeof items[0].structured_content, 'object', 'structured_content column should be set')
+    assert.same(items[0].structured_content, ['foo'], 'should be a json object')
+    assert.ok(items[1].id, 'id column should be set')
+    assert.equals(items[1].name, 'two', 'name column should be set')
+    assert.equals(typeof items[1].structured_content, 'object', 'structured_content column should be set')
+    assert.same(items[1].structured_content, ['bar'], 'should be a json object')
+  })
+})
+
+test('autoJSON: stringifies the column on create for bulk inserts with falsy members', assert => {
+  Item.wrappedObjects = autoJSON(Item.objects, { column: 'structured_content' })
+
+  return Item.wrappedObjects.create([{ name: 'one', structured_content: ['foo'] }, null]).then(items => {
+    assert.equals(items.length, 2, 'should have created two items')
+    assert.ok(items[0].id, 'id column should be set')
+    assert.equals(items[0].name, 'one', 'name column should be set')
+    assert.equals(typeof items[0].structured_content, 'object', 'structured_content column should be set')
+    assert.same(items[0].structured_content, ['foo'], 'should be a json object')
+    assert.ok(items[1].id, 'id column should be set')
+    assert.equals(items[1].name, null, 'name column should be null')
+    assert.equals(typeof items[1].structured_content, 'object', 'structured_content column should be set')
+    assert.equals(items[1].structured_content, null, 'should be a null')
+  })
+})
+
+test('autoJSON: stringifies the column on update', assert => {
+  Item.wrappedObjects = autoJSON(Item.objects, { column: 'structured_content' })
+
+  return Item.wrappedObjects.create({ name: 'test' }).then(item => {
+    assert.ok(item.id, 'id column should be set')
+    assert.equals(item.name, 'test', 'name column should be set')
+    assert.equals(item.structured_content, null, 'structured_content column should be null')
+    return Item.wrappedObjects.filter({ id: item.id }).update({ name: 'updated', structured_content: ['updated'] }).then(updated => {
+      assert.equals(updated, 1, 'should have updated one row')
+      return Item.wrappedObjects.get({ id: item.id }).then(newItem => {
+        assert.equals(item.id, newItem.id, 'updated the right item')
+        assert.equals(newItem.name, 'updated', 'name column should be updated')
+        assert.same(newItem.structured_content, ['updated'], 'structured_content column should be updated')
+      })
+    })
+  })
+})
+
+test('autoJSON: does not stringify the column on update if a string is passed', assert => {
+  Item.wrappedObjects = autoJSON(Item.objects, { column: 'structured_content' })
+
+  return Item.wrappedObjects.create({ name: 'test' }).then(item => {
+    assert.ok(item.id, 'id column should be set')
+    assert.equals(item.name, 'test', 'name column should be set')
+    assert.equals(item.structured_content, null, 'structured_content column should be null')
+    return Item.wrappedObjects.filter({ id: item.id }).update({ name: 'updated', structured_content: JSON.stringify(['foo', 'bar']) }).then(updated => {
+      assert.equals(updated, 1, 'should have updated one row')
+      return Item.wrappedObjects.get({ id: item.id }).then(newItem => {
+        assert.equals(item.id, newItem.id, 'updated the right item')
+        assert.equals(newItem.name, 'updated', 'name column should be updated')
+        assert.same(newItem.structured_content, ['foo', 'bar'], 'structured_content column should match the given value')
+      })
     })
   })
 })
