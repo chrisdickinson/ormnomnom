@@ -2,10 +2,10 @@
 
 const clone = require('lodash.clonedeep')
 
-const symbols = require('ormnomnom/lib/shared-symbols')
+const symbols = require('../lib/shared-symbols')
 const privateAPISym = symbols.privateAPI
-const DAO = require('ormnomnom')
-const { props } = require('ormnomnom/lib/promises')
+const DAO = require('..')
+const { props } = require('../lib/promises')
 
 const autoJsonSym = Symbol('auto_json_decorator')
 
@@ -55,10 +55,6 @@ module.exports = function (dao, opts = {}) {
     }
 
     update (data) {
-      if (createOnly) {
-        return super.update(data)
-      }
-
       return props(data || {}).then(props => {
         if ((column in props) && typeof props[column] !== 'string') {
           props[column] = JSON.stringify(props[column])
