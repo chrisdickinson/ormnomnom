@@ -44,7 +44,7 @@
     "fluent-schema": "^1.1.0",
     "pg": "^8.5.1",
     "standard": "^14.3.1",
-    "tap": "^14.6.9",
+    "tap": "^15.0.6",
     "weallbehave": "^1.0.3",
     "weallcontribute": "^1.0.8"
   }
