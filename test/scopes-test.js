@@ -22,8 +22,8 @@ test('test calling a scope', assert => {
     val: { type: 'number' }
   }, {
     scopes: {
-      name: function (n) {
-        return this.filter({ name: n })
+      name: (qs, n) => {
+        return qs.filter({ name: n })
       }
     }
   })
@@ -54,11 +54,11 @@ test('test chaining scopes', assert => {
     val: { type: 'number' }
   }, {
     scopes: {
-      name: function (n) {
-        return this.filter({ name: n })
+      name: (qs, n) => {
+        return qs.filter({ name: n })
       },
-      val: function (v) {
-        return this.filter({ val: v })
+      val: (qs, v) => {
+        return qs.filter({ val: v })
       }
     }
   })
