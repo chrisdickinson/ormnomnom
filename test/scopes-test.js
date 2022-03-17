@@ -18,6 +18,30 @@ test('test calling a scope', assert => {
     }
   }
 
+  class NotAQuerySet { }
+
+  assert.throws(() => {
+    orm(Node, {
+      id: { type: 'integer' },
+      name: { anyOf: [{ type: 'null' }, { type: 'string' }], default: null },
+      val: { type: 'number' }
+    }, {
+      querySetClass: NotAQuerySet
+    })
+  })
+
+  assert.end()
+})
+
+test('test calling a scope', assert => {
+  class Node {
+    constructor (obj) {
+      this.id = obj.id
+      this.name = obj.name
+      this.val = obj.val
+    }
+  }
+
   class NodeQuerySet extends QuerySet {
     name (n) {
       return this.filter({ name: n })
