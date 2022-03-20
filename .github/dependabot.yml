@@ -1,0 +1,36 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "13:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: tap
+    versions:
+    - 14.11.0
+    - 15.0.0
+    - 15.0.1
+    - 15.0.2
+    - 15.0.4
+  - dependency-name: ajv
+    versions:
+    - 7.0.3
+    - 7.0.4
+    - 7.1.0
+    - 7.1.1
+    - 7.2.1
+    - 7.2.3
+    - 7.2.4
+    - 8.0.1
+    - 8.0.2
+    - 8.0.4
+    - 8.0.5
+    - 8.1.0
+  - dependency-name: lodash
+    versions:
+    - 4.17.20
+  - dependency-name: handlebars
+    versions:
+    - 4.7.6
