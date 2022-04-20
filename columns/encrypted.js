@@ -8,16 +8,21 @@ module.exports = encrypted
 
 function encrypted (schema, { password, iron = Iron.defaults }) {
   iron = { ...Iron.defaults, ...(iron || Iron.defaults) }
+  const getPassword = (
+    typeof password === 'function'
+    ? password
+    : () => password
+  )
 
   return orm.col(schema, {
     encode (appData) {
-      return Iron.seal(appData, password, iron)
+      return Iron.seal(appData, getPassword(), iron)
     },
     decode (dbData) {
-      return Iron.unseal(dbData, password, iron)
+      return Iron.unseal(dbData, getPassword(), iron)
     },
     encodeQuery (appData) {
-      return Iron.seal(appData, password, iron)
+      return Iron.seal(appData, getPassword(), iron)
     }
   })
 }

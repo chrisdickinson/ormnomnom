@@ -191,7 +191,7 @@ EncryptedColumnTest.objects = orm(EncryptedColumnTest, {
       }
     }
   }, {
-    password: 'keyboardcat'.repeat(4)
+    password () { return 'keyboardcat'.repeat(4) }
   })
 })
 
